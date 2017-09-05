@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mirage API UNITEST</title>
+    <link rel="icon" href="/static/imgs/logo.png" type="image/x-icon">
+    <script src="/static/jquery-1.11.3.min.js"></script>
+    <script src="/static/js/utils.js"></script>
+    <link href="/static/css/common.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/bootstrap334/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/bootstrap334/css/bootstrap-theme.min.css" rel="stylesheet" type="text/css"/>
+    <link href="/static/bootstrap334/css/bootstrap-datetimepicker.css" rel="stylesheet" type="text/css"/>
+    <script src="/static/bootstrap334/js/bootstrap.min.js"></script>
+    <script src="/static/bootstrap334/js/bootstrap-datetimepicker.js"></script>
+    <script src="/static/bootstrap334/js/locales/bootstrap-datetimepicker.fr.js"></script>
+    <script src="/static/bootstrap334/js/locales/bootstrap-datetimepicker.zh-CN.js"></script>
+</head>
+<body>
+
+<div class="container">
+
+	<h1>欢迎使用 {{ .TESTTITLE }} API单元测试功能 </h1>
+
+    <textarea title="" id="hidenString" hidden style="height: 1px">
+        {{ .APICONFIG }}
+    </textarea>
+
+    <div style="display: inline-block; padding-top: 25px">
+        <label class="" style="width: 80px;float: left;line-height: 34px; margin-right: 10px">选择模块：</label>
+        <select id="apiModuleList" onchange="updateApis();" title="" style="margin-right:10px; width: 150px;float: left" class="form-control">
+        </select>
+        <label class="" style="width: 80px;float: left;line-height: 34px; margin-right: 10px">选择API：</label>
+        <select id="apiList" onchange="updateParas();" title="" style="margin-right:10px; width: 300px;float: left" class="form-control">
+        </select>
+        <input id="moduleQueryButton" style="display: inline-block; width: 80px; float: left" onclick="commint_request();" type="button"
+               value="提交" class="btn btn-primary"/>
+    </div>
+
+    <div>
+        <label class="" style="width: 150px;float: left;line-height: 34px; margin-right: 10px">请输入参数：</label>
+        <div>
+            <table id='apiRequestTable' style='word-break: break-all; table-layout: fixed' class="table table-striped">
+            </table>
+        </div>
+    </div>
+
+    <label class="" style="width: 80px;float: left;line-height: 34px; margin-right: 10px">请求内容：</label><br><br>
+    <div>
+        <pre id="requestBody" style="height: 100%; padding: 5px" title="">
+        </pre>
+    </div>
+
+    <label class="" style="width: 80px;float: left;line-height: 34px; margin-right: 10px">回复内容：</label><br><br>
+    <div>
+        <pre id="responseBody" style="height: 100%; padding: 5px" title="">
+        </pre>
+    </div>
+
+
+</div>
+
+<script>
+
+    function getSelectedApi() {
+        selectedModule = getSelectedOption("#apiModuleList");
+        selectedApi = getSelectedOption("#apiList");
+
+        apiModule = JsonObj[selectedModule];
+        return apiModule["protos"][selectedApi];
+    }
+
+    function updateParas() {
+
+        bodyStr = "";
+
+        selectedApiObj = getSelectedApi();
+        parasList = selectedApiObj["paras"];
+
+        var $parasTable = $("#apiRequestTable");
+
+        bodyStr += "<tr><th width='25%'>名称</th>";
+        bodyStr += "<th width='25%'>类型</th>";
+        bodyStr += "<th style='word-break: break-all'>内容</th></tr>";
+
+        for (var i = 0; i < parasList.length; i++) {
+
+			param = parasList[i];
+
+            var placeHolder = param["desc"];
+            var value = "";
+
+            if (param["default"] != "NotNull") {
+                placeHolder = placeHolder + " ( " + param["default"] + " ) ";
+                value = param["default"];
+            }
+
+            bodyStr += "<tr><td><input type='text' disabled readonly name='name' value = " + param["name"] + "></td > ";
+            bodyStr += "<td><select readonly disabled name='type' class='form-control'><option>" + param["type"] + "</option></select></td > ";
+            bodyStr += "<td><input type='text' name='value' placeholder='" +  placeHolder + "' value = '" + value + "'></td></tr>";
+        }
+
+        $parasTable.html(bodyStr);
+    }
+
+    function updateApis() {
+        selectedModule = getSelectedOption("#apiModuleList");
+
+        var $apiList = $("#apiList");
+        var bodyStr = "";
+
+        apiModule = JsonObj[selectedModule];
+
+		for (var key in apiModule["protos"]) {
+            apiNode = apiModule["protos"][key];
+            bodyStr += "<option value='" + key + "'>" + apiNode["name"] + "</option>"
+        }
+
+        $apiList.html(bodyStr);
+
+        updateParas();
+    }
+
+    function fetch_api_paras() {
+        var paras = {};
+
+        $apiTable = $("#apiRequestTable");
+        var $trs = $apiTable.children("tbody").children("tr");
+        $trs.each(function(index) {
+            var $tr = $(this);
+            if (index != 0) {
+                $tds = $tr.children("td");
+                name = $tds[0].children[0].value;
+                valueType = $tds[1].children[0].value;
+                value = $tds[2].children[0].value;
+                if (valueType == "int") {
+                    paras[name] = parseInt(value);
+                }else if (valueType == "boolean") {
+                    paras[name] = value.toLowerCase() == "true";
+                } else if(valueType == "liststring") {
+                    paras[name] = value.split(",");
+                } else if(valueType == "listint") {
+                    paras[name] = value.split(",");
+                } else {
+                    paras[name] = value;
+                }
+              }
+        });
+
+        return paras;
+    }
+
+
+    function commint_request() {
+
+        selectedModule = getSelectedOption("#apiModuleList");
+        selectedApi = getSelectedApi();
+
+        json = {
+            "module": selectedModule,
+            "api": selectedApi["key"],
+            "paras": fetch_api_paras(),
+            "async": false,
+            "session": {
+                "uuid": "00000000000000000000000000000000",
+                "skey": "00000000000000000000000000000000"
+            }
+        };
+
+        bodyStr = JSON.stringify(json);
+
+        httpPost("/api/", bodyStr, function(resJson){
+            $("#requestBody").html(JSON.stringify(json, null, 4));
+            $("#responseBody").html(JSON.stringify(resJson, null, 4));
+        });
+    }
+
+	function initModuleList() {
+		var bodyStr = ""; 
+        var $moduleListTable = $("#apiModuleList");
+		for (var key in JsonObj) {
+			bodyStr += "<option>" + key + "</optipn>";
+		}
+		$moduleListTable.html(bodyStr);
+	}
+
+    var $hidenNode = $("#hidenString");
+    var JsonObj = JSON.parse($hidenNode.html());
+
+	initModuleList()
+
+    updateApis();
+
+	console.log(JsonObj)
+
+</script>
+
+</body>
+</html>
