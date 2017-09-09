@@ -3,12 +3,6 @@
 *.a
 *.so
 *~
-
-rstore
-rstcli
-
-main
-
 dist
 package
 
@@ -36,13 +30,8 @@ _testmain.go
 *.test
 *.prof
 *.log
-
 bin
-
 logs
-
-registry
-
 npm-debug.log*
 
 # Runtime data
