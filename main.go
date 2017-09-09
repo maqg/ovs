@@ -24,7 +24,7 @@ func initDebugConfig() {
 
 func initLogConfig() {
 	utils.CreateDir(conf.LogDirectory)
-	api.InitAPILog(conf.LogLevel)
+	api.InitLog(conf.LogLevel)
 	utils.InitLog(conf.LogLevel)
 }
 

@@ -1,9 +1,13 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"octlink/ovs/utils/octlog"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 const (
@@ -61,8 +65,8 @@ type Proto struct {
 	handler func(*Paras) *Response
 }
 
-// InitAPILog to init api log config
-func InitAPILog(level int) {
+// InitLog to init api log config
+func InitLog(level int) {
 	logger = octlog.InitLogConfig("api.log", level)
 }
 
@@ -97,4 +101,14 @@ func FindProto(api string) *Proto {
 	}
 
 	return &proto
+}
+
+// LoadTestPage to load api test page
+func (api *API) LoadTestPage(c *gin.Context) {
+	apiModules, _ := json.Marshal(GAPIConfig.Modules)
+	c.HTML(http.StatusOK, "apitest.html",
+		gin.H{
+			"TESTTITLE": "Mirage",
+			"APICONFIG": string(apiModules),
+		})
 }

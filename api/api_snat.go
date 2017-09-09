@@ -4,12 +4,12 @@ import "octlink/ovs/modules/snat"
 
 // AddSnat to add image by API
 func AddSnat(paras *Paras) *Response {
-	return nil
+	return &Response{}
 }
 
 // ShowSnat by api
 func ShowSnat(paras *Paras) *Response {
-	return nil
+	return &Response{}
 }
 
 // DeleteSnat to delete image
