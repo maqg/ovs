@@ -6,6 +6,8 @@
 dist
 package
 
+*.out
+
 *.tgz
 
 # Folders
