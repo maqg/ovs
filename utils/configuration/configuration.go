@@ -9,11 +9,6 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-const (
-	// BlobSize for blob manage in bytes
-	BlobSize = 8 * 1024 * 1024
-)
-
 // Configuration for global config
 type Configuration struct {
 
@@ -25,9 +20,6 @@ type Configuration struct {
 
 	// Debuglevel is the level for debugging.
 	DebugLevel int `yaml:"debuglevel,omitempty"`
-
-	// LogDirectory for log directory
-	LogDirectory string `yaml:"logdirectory,omitempty"`
 
 	// RootDirectory for root directory
 	RootDirectory string `yaml:"rootdirectory,omitempty"`
@@ -59,7 +51,7 @@ func ParseConfig(in []byte) (*Configuration, error) {
 
 // LogDirectory for log directory fetching
 func LogDirectory() string {
-	return Conf.RootDirectory + "/" + Conf.LogDirectory
+	return Conf.RootDirectory + "/logs"
 }
 
 // RootDirectory for system config

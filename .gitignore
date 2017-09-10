@@ -5,6 +5,7 @@
 *~
 dist
 package
+ovs
 
 *.out
 
