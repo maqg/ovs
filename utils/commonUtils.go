@@ -120,8 +120,8 @@ func RemoveDir(filepath string) {
 	}
 }
 
-// Remove if file or directory exists, just remove it
-func Remove(filepath string) {
+// RemoveFile if file or directory exists, just remove it
+func RemoveFile(filepath string) {
 	if IsFileExist(filepath) {
 		os.Remove(filepath)
 	}
@@ -273,4 +273,15 @@ var logger *octlog.LogConfig
 // InitLog to init api log config
 func InitLog(level int) {
 	logger = octlog.InitLogConfig("utils.log", level)
+}
+
+// RemoveFromArray for remove from array
+func RemoveFromArray(slice []interface{}, s int) []interface{} {
+	return append(slice[:s], slice[s+1:]...)
+}
+
+// RemoveFromArrayEx for remove from array without seq indexing
+func RemoveFromArrayEx(s []interface{}, i int) []interface{} {
+	s[len(s)-1], s[i] = s[i], s[len(s)-1]
+	return s[:len(s)-1]
 }
