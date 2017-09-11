@@ -1,35 +1,30 @@
 package nic
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"octlink/ovs/utils"
 	"octlink/ovs/utils/vyos"
-
-	log "github.com/Sirupsen/logrus"
 )
 
 const (
-	VR_CONFIGURE_NIC   = "/configurenic"
-	VR_REMOVE_NIC_PATH = "/removenic"
+	// VrConfigureNic Nic Vr Configure
+	VrConfigureNic = "/configurenic"
 
-	BOOTSTRAP_INFO_CACHE = "/home/vyos/zvr/bootstrap-info.json"
-	DEFAULT_SSH_PORT     = 22
+	// VrRemoveNicPath VR remove nic path
+	VrRemoveNicPath = "/removenic"
 )
 
-type nicInfo struct {
-	Ip      string `json:"ip"`
+// Nic for Basic Nic Structure
+type Nic struct {
+	IP      string `json:"ip"`
 	Netmask string `json:"netmask"`
 	Gateway string `json:"gateway"`
 	Mac     string `json:"Mac"`
 }
 
 type configureNicCmd struct {
-	Nics []nicInfo `json:"nics"`
+	Nics []Nic `json:"nics"`
 }
-
-var bootstrapInfo map[string]interface{} = make(map[string]interface{})
 
 func configureNic(ctx *vyos.CommandContext) interface{} {
 	cmd := &configureNicCmd{}
@@ -89,22 +84,6 @@ func configureNic(ctx *vyos.CommandContext) interface{} {
 	return nil
 }
 
-func getSshPortFromBootInfo() float64 {
-	content, err := ioutil.ReadFile(BOOTSTRAP_INFO_CACHE)
-	utils.PanicOnError(err)
-	if len(content) == 0 {
-		log.Debugf("no content in %s, use default ssh port %d", BOOTSTRAP_INFO_CACHE, DEFAULT_SSH_PORT)
-		return DEFAULT_SSH_PORT
-	}
-
-	if err := json.Unmarshal(content, &bootstrapInfo); err != nil {
-		log.Debugf("can not parse info from %s, use default ssh port %d", BOOTSTRAP_INFO_CACHE, DEFAULT_SSH_PORT)
-		return DEFAULT_SSH_PORT
-	}
-
-	return bootstrapInfo["sshPort"].(float64)
-}
-
 func removeNic(ctx *vyos.CommandContext) interface{} {
 	cmd := &configureNicCmd{}
 	ctx.GetCommand(cmd)
@@ -122,12 +101,7 @@ func removeNic(ctx *vyos.CommandContext) interface{} {
 	return nil
 }
 
-func ConfigureNicEntryPoint() {
-	//server.RegisterAsyncCommandHandler(VR_CONFIGURE_NIC, server.VyosLock(configureNic))
-	//server.RegisterAsyncCommandHandler(VR_REMOVE_NIC_PATH, server.VyosLock(removeNic))
-}
-
 // GetInterfaces by condition
-func GetInterfaces() []*nicInfo {
-	return make([]*nicInfo, 0)
+func GetInterfaces() []*Nic {
+	return make([]*Nic, 0)
 }
