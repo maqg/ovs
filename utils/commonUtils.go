@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"octlink/ovs/utils/config"
 	"octlink/ovs/utils/octlog"
 	"os"
@@ -17,6 +18,8 @@ import (
 	"strings"
 	"time"
 	"unsafe"
+
+	"github.com/pkg/errors"
 )
 
 const (
@@ -284,4 +287,18 @@ func RemoveFromArray(slice []interface{}, s int) []interface{} {
 func RemoveFromArrayEx(s []interface{}, i int) []interface{} {
 	s[len(s)-1], s[i] = s[i], s[len(s)-1]
 	return s[:len(s)-1]
+}
+
+// JsonDecodeHttpRequest for json decode http request
+func JsonDecodeHttpRequest(req *http.Request, val interface{}) (err error) {
+	body, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		return errors.Wrap(err, "unable to read the request, %s")
+	}
+
+	if err = json.Unmarshal(body, val); err != nil {
+		return errors.Wrap(err, fmt.Sprintf("unable to parse string '%s' to JSON object", string(body)))
+	}
+
+	return nil
 }

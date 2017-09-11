@@ -33,6 +33,7 @@ var bootstrapInfo map[string]interface{} = make(map[string]interface{})
 
 func configureNic(ctx *vyos.CommandContext) interface{} {
 	cmd := &configureNicCmd{}
+
 	ctx.GetCommand(cmd)
 
 	tree := vyos.NewParserFromShowConfiguration().Tree
@@ -124,4 +125,9 @@ func removeNic(ctx *vyos.CommandContext) interface{} {
 func ConfigureNicEntryPoint() {
 	//server.RegisterAsyncCommandHandler(VR_CONFIGURE_NIC, server.VyosLock(configureNic))
 	//server.RegisterAsyncCommandHandler(VR_REMOVE_NIC_PATH, server.VyosLock(removeNic))
+}
+
+// GetInterfaces by condition
+func GetInterfaces() []*nicInfo {
+	return make([]*nicInfo, 0)
 }

@@ -3,6 +3,7 @@ package api
 var apiDescriptors = []Module{
 	snatDescriptors,
 	configDescriptors,
+	nicDescriptors,
 }
 
 func loadModules(module Module) {
