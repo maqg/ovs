@@ -16,10 +16,8 @@ const (
 
 // Snat for snat sturcture
 type Snat struct {
-	ID     string `json:"id"`
-	Name   string `json:"imageName"`
-	State  string `json:"state"`
-	Status string `json:"status"`
+	ID            string `json:"id"`
+	PrivateNicMac string `json:"privateNicMac"`
 }
 
 // GetSnatCount to return image count by condition
@@ -43,8 +41,8 @@ func (s *Snat) Update() int {
 
 // Add for image, after image added,
 // installpath, diskSize, virtualSize, Status, md5sum need update after manifest installed
-func (s *Snat) Add() (string, int) {
-	return "", 0
+func (s *Snat) Add() int {
+	return 0
 }
 
 // GetSnat get snat settings
