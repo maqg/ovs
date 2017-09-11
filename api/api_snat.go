@@ -13,7 +13,7 @@ func AddSnat(paras *Paras) *Response {
 	}
 
 	sn = &snat.Snat{
-		privateNicMac: paras.Get("privateNicMac"),
+		PrivateNicMac: paras.Get("privateNicMac"),
 	}
 
 	return &Response{

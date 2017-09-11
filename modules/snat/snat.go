@@ -28,8 +28,7 @@ func GetSnatCount() int {
 // Brief to return brief info for image
 func (s *Snat) Brief() map[string]string {
 	return map[string]string{
-		"id":   s.ID,
-		"name": s.Name,
+		"id": s.ID,
 	}
 }
 

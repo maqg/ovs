@@ -5,7 +5,7 @@ var nicDescriptors = Module{
 	Protos: map[string]Proto{
 		"APIShowInterfaces": {
 			Name:    "查看接口信息",
-			handler: ShowInterfaces
+			handler: ShowInterfaces,
 			Paras:   []ProtoPara{},
 		},
 	},
