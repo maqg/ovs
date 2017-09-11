@@ -1,7 +1,7 @@
 package api
 
-// ConfigDescriptors for image management by API
-var ConfigDescriptors = Module{
+// configDescriptors for image management by API
+var configDescriptors = Module{
 	Name: "config",
 	Protos: map[string]Proto{
 		"APIShowSystemInfo": {

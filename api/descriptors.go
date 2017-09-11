@@ -1,8 +1,8 @@
 package api
 
 var apiDescriptors = []Module{
-	SnatDescriptors,
-	ConfigDescriptors,
+	snatDescriptors,
+	configDescriptors,
 }
 
 func loadModules(module Module) {

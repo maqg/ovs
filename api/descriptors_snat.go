@@ -1,7 +1,7 @@
 package api
 
-// SnatDescriptors for SNAT management by API
-var SnatDescriptors = Module{
+// snatDescriptors for SNAT management by API
+var snatDescriptors = Module{
 	Name: "snat",
 	Protos: map[string]Proto{
 		"APIAddSnat": {
@@ -9,9 +9,21 @@ var SnatDescriptors = Module{
 			handler: AddSnat,
 			Paras: []ProtoPara{
 				{
-					Name:    "name",
+					Name:    "privateNicMac",
 					Type:    ParamTypeString,
-					Desc:    "Image Name",
+					Desc:    "Private Nic Mac Address",
+					Default: ParamNotNull,
+				},
+				{
+					Name:    "publicNicMac",
+					Type:    ParamTypeString,
+					Desc:    "Public Nic Mac Address",
+					Default: ParamNotNull,
+				},
+				{
+					Name:    "publicIp",
+					Type:    ParamTypeString,
+					Desc:    "Public IP Address",
 					Default: ParamNotNull,
 				},
 			},
@@ -22,9 +34,9 @@ var SnatDescriptors = Module{
 			handler: ShowSnat,
 			Paras: []ProtoPara{
 				{
-					Name:    "id",
+					Name:    "privateNicMac",
 					Type:    ParamTypeString,
-					Desc:    "Image Id",
+					Desc:    "Private Nic Mac Address",
 					Default: ParamNotNull,
 				},
 			},
@@ -54,9 +66,9 @@ var SnatDescriptors = Module{
 			handler: DeleteSnat,
 			Paras: []ProtoPara{
 				{
-					Name:    "id",
+					Name:    "privateNicMac",
 					Type:    ParamTypeString,
-					Desc:    "UUID of Image",
+					Desc:    "Private Nic Mac Address",
 					Default: ParamNotNull,
 				},
 			},
