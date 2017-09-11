@@ -1,17 +1,19 @@
-package plugin
+package nic
 
 import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"ovs/utils"
+	"octlink/ovs/utils"
+	"octlink/ovs/utils/vyos"
 
 	log "github.com/Sirupsen/logrus"
 )
 
 const (
-	VR_CONFIGURE_NIC     = "/configurenic"
-	VR_REMOVE_NIC_PATH   = "/removenic"
+	VR_CONFIGURE_NIC   = "/configurenic"
+	VR_REMOVE_NIC_PATH = "/removenic"
+
 	BOOTSTRAP_INFO_CACHE = "/home/vyos/zvr/bootstrap-info.json"
 	DEFAULT_SSH_PORT     = 22
 )

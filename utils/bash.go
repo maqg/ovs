@@ -10,6 +10,7 @@ import (
 	"text/template"
 
 	"github.com/Sirupsen/logrus"
+
 	"github.com/pkg/errors"
 )
 
@@ -88,10 +89,6 @@ func (b *Bash) RunWithReturn() (retCode int, stdout, stderr string, err error) {
 		err = tmpfile.Close()
 		PanicOnError(err)
 		cmd = exec.Command("bash", "-c", tmpfile.Name())
-		//ioutil.WriteFile(tmpfile.Name(), content, 0777)
-		//path := "/home/vyos/zvrcommand"
-		//ioutil.WriteFile(path, content, 0777)
-		//cmd = exec.Command("bash", "-c", path)
 		defer os.Remove(tmpfile.Name())
 	} else {
 		cmd = exec.Command("bash", "-c", b.Command)
