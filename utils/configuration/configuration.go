@@ -21,8 +21,8 @@ type Configuration struct {
 	// Debuglevel is the level for debugging.
 	DebugLevel int `yaml:"debuglevel,omitempty"`
 
-	// RootDirectory for root directory
-	RootDirectory string `yaml:"rootdirectory,omitempty"`
+	// LogDirectory for root directory
+	LogDirectory string `yaml:"rootdirectory,omitempty"`
 
 	HTTP struct {
 		Addr string `yaml:"addr,omitempty"`
@@ -51,12 +51,7 @@ func ParseConfig(in []byte) (*Configuration, error) {
 
 // LogDirectory for log directory fetching
 func LogDirectory() string {
-	return Conf.RootDirectory + "/logs"
-}
-
-// RootDirectory for system config
-func RootDirectory() string {
-	return Conf.RootDirectory
+	return Conf.LogDirectory
 }
 
 // Parse from io.Reader

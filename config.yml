@@ -1,6 +1,6 @@
 version: 0.1
 debuglevel: 5
 loglevel: 5
-rootdirectory: ./
+logdirectory: ./logs
 http:
     addr: :2443
