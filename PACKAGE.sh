@@ -22,12 +22,12 @@ fi
 echo "Stripping binaries..."
 strip ovs
 
-PACKAGE=RSTORE-$TODAY".tgz"
+PACKAGE=ovs-$TODAY".tgz"
 
 echo "Packaging..."
 cp ../config.yml config-raw.yml
 cp ../restart.sh .
-tar -zcf $PACKAGE ../frontend ovs log *.yml *.sh
+tar -zcf $PACKAGE ../frontend ovs logs *.yml *.sh
 
 echo ""
 echo "Build Successfully, got file $PACKAGE"
