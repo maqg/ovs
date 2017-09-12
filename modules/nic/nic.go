@@ -3,6 +3,7 @@ package nic
 import (
 	"fmt"
 	"octlink/ovs/utils"
+	"octlink/ovs/utils/merrors"
 	"octlink/ovs/utils/vyos"
 )
 
@@ -22,20 +23,17 @@ type Nic struct {
 	IP      string `json:"ip"`
 	Netmask string `json:"netmask"`
 	Gateway string `json:"gateway"`
-	Mac     string `json:"Mac"`
+	Mac     string `json:"mac"`
 }
 
 type configureNicCmd struct {
 	Nics []Nic `json:"nics"`
 }
 
-func configureNic(ctx *vyos.CommandContext) interface{} {
-	cmd := &configureNicCmd{}
-
-	ctx.GetCommand(cmd)
+func configureNic(nics []*Nic) int {
 
 	tree := vyos.NewParserFromShowConfiguration().Tree
-	for _, nic := range cmd.Nics {
+	for _, nic := range nics {
 		nicname, err := utils.GetNicNameByMac(nic.Mac)
 		utils.PanicOnError(err)
 		cidr, err := utils.NetmaskToCIDR(nic.Netmask)
@@ -84,15 +82,14 @@ func configureNic(ctx *vyos.CommandContext) interface{} {
 	}
 
 	tree.Apply(false)
-	return nil
+
+	return merrors.ErrSuccess
 }
 
-func removeNic(ctx *vyos.CommandContext) interface{} {
-	cmd := &configureNicCmd{}
-	ctx.GetCommand(cmd)
+func removeNic(nics []*Nic) int {
 
 	tree := vyos.NewParserFromShowConfiguration().Tree
-	for _, nic := range cmd.Nics {
+	for _, nic := range nics {
 		nicname, err := utils.GetNicNameByMac(nic.Mac)
 		utils.PanicOnError(err)
 		tree.Deletef("interfaces ethernet %s", nicname)
@@ -101,10 +98,17 @@ func removeNic(ctx *vyos.CommandContext) interface{} {
 	}
 	tree.Apply(false)
 
-	return nil
+	return merrors.ErrSuccess
 }
 
 // GetNics by condition
 func GetNics() []*Nic {
-	return make([]*Nic, 0)
+	return []*Nic{
+		{
+			IP:      "10.10.0.100",
+			Netmask: "255.255.255.0",
+			Mac:     "11:33:33:44:55:66",
+			Gateway: "10.10.0.1",
+		},
+	}
 }

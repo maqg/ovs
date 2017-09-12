@@ -15,6 +15,7 @@ var (
 	vyosScriptLock = &sync.Mutex{}
 )
 
+// FindNicNameByMacFromConfiguration for mac finding
 func FindNicNameByMacFromConfiguration(mac, configuration string) (string, bool) {
 	parser := NewParserFromConfiguration(configuration)
 
@@ -38,10 +39,12 @@ func FindNicNameByMacFromConfiguration(mac, configuration string) (string, bool)
 	return "", false
 }
 
+// FindNicNameByMac find nicname by mac address
 func FindNicNameByMac(mac string) (string, bool) {
-	return FindNicNameByMacFromConfiguration(mac, VyosShowConfiguration())
+	return FindNicNameByMacFromConfiguration(mac, ShowConfiguration())
 }
 
+// RunVyosScriptAsUserVyos run vyos script by user vyos
 func RunVyosScriptAsUserVyos(command string) {
 	template := `export vyatta_sbindir=/opt/vyatta/sbin
 SET=${vyatta_sbindir}/my_set
@@ -93,6 +96,7 @@ trap atexit EXIT SIGHUP SIGINT SIGTERM
 	bash.PanicIfError()
 }
 
+// RunVyosScript Run Vyos Script
 func RunVyosScript(command string, args map[string]string) {
 	template := `export vyatta_sbindir=/opt/vyatta/sbin
 SET=${vyatta_sbindir}/my_set
@@ -137,7 +141,8 @@ trap atexit EXIT SIGHUP SIGINT SIGTERM
 	bash.PanicIfError()
 }
 
-func VyosLock(fn CommandHandler) CommandHandler {
+// Lock for command management
+func Lock(fn CommandHandler) CommandHandler {
 	return func(ctx *CommandContext) interface{} {
 		vyosScriptLock.Lock()
 		defer vyosScriptLock.Unlock()

@@ -7,7 +7,7 @@ import (
 )
 
 func TestSetFirewall(t *testing.T) {
-	UNIT_TEST = true
+	UnitTest = true
 
 	ConfigurationSourceFunc = func() string {
 		return ""
@@ -129,7 +129,7 @@ system {
 
 ABC E
 `
-	p := VyosParser{}
+	p := Parser{}
 	tree := p.Parse(text)
 	addr := tree.Get("interfaces ethernet eth0 address")
 	utils.Assert("172.20.14.209/16" == addr.Value(), "not equal")
