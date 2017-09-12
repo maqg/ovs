@@ -18,8 +18,9 @@ const (
 	VrSSHPort = 22
 )
 
-// Nic for Basic Nic Structure
-type Nic struct {
+// IfInfo for Basic IfInfo Structure
+type IfInfo struct {
+	Name    string `json:"name"`
 	IP      string `json:"ip"`
 	Netmask string `json:"netmask"`
 	Gateway string `json:"gateway"`
@@ -27,10 +28,10 @@ type Nic struct {
 }
 
 type configureNicCmd struct {
-	Nics []Nic `json:"nics"`
+	Nics []IfInfo `json:"nics"`
 }
 
-func configureNic(nics []*Nic) int {
+func configureNic(nics []*IfInfo) int {
 
 	tree := vyos.NewParserFromShowConfiguration().Tree
 	for _, nic := range nics {
@@ -86,7 +87,7 @@ func configureNic(nics []*Nic) int {
 	return merrors.ErrSuccess
 }
 
-func removeNic(nics []*Nic) int {
+func removeNic(nics []*IfInfo) int {
 
 	tree := vyos.NewParserFromShowConfiguration().Tree
 	for _, nic := range nics {
@@ -102,13 +103,23 @@ func removeNic(nics []*Nic) int {
 }
 
 // GetNics by condition
-func GetNics() []*Nic {
-	return []*Nic{
-		{
-			IP:      "10.10.0.100",
-			Netmask: "255.255.255.0",
-			Mac:     "11:33:33:44:55:66",
-			Gateway: "10.10.0.1",
-		},
+func GetNics() []*IfInfo {
+
+	ifs := make([]*IfInfo, 0)
+
+	nics, err := utils.GetAllNics()
+	if err != nil {
+		fmt.Printf("get all nics error\n")
+		return ifs
 	}
+
+	for _, nic := range nics {
+		ifinfo := &IfInfo{
+			Name: nic.Name,
+			Mac:  nic.Mac,
+		}
+		ifs = append(ifs, ifinfo)
+	}
+
+	return ifs
 }
