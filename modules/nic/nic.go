@@ -39,6 +39,7 @@ func configureNic(nics []*IfInfo) int {
 		utils.PanicOnError(err)
 		cidr := utils.NetmaskToCIDR(nic.Netmask)
 		utils.PanicOnError(err)
+
 		addr := fmt.Sprintf("%v/%v", nic.IP, cidr)
 		tree.SetfWithoutCheckExisting("interfaces ethernet %s address %v", nicname, addr)
 		tree.SetfWithoutCheckExisting("interfaces ethernet %s duplex auto", nicname)

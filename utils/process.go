@@ -9,7 +9,6 @@ import (
 
 // FindPIDByPS to find pid by ps command
 func FindPIDByPS(cmdline ...string) (int, error) {
-	Assert(cmdline != nil, "cmdline must have one parameter at least")
 
 	cmds := []string{"ps aux"}
 	for _, c := range cmdline {

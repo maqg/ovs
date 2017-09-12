@@ -4,16 +4,22 @@ import (
 	"fmt"
 	"io/ioutil"
 	"octlink/ovs/utils"
+	"octlink/ovs/utils/octlog"
 	"os"
 	"strings"
 	"sync"
-
-	"github.com/Sirupsen/logrus"
 )
 
 var (
 	vyosScriptLock = &sync.Mutex{}
 )
+
+var logger *octlog.LogConfig
+
+// InitLog for vyos config
+func InitLog(level int) {
+	logger = octlog.InitLogConfig("vyos.log", level)
+}
 
 // FindNicNameByMacFromConfiguration for mac finding
 func FindNicNameByMacFromConfiguration(mac, configuration string) (string, bool) {
@@ -80,7 +86,7 @@ function atexit() {
 trap atexit EXIT SIGHUP SIGINT SIGTERM
 `
 	command = fmt.Sprintf(template, command)
-	tmpfile, err := ioutil.TempFile("", "zvr")
+	tmpfile, err := ioutil.TempFile("", "ovs")
 	utils.PanicOnError(err)
 	defer os.Remove(tmpfile.Name())
 
@@ -88,7 +94,9 @@ trap atexit EXIT SIGHUP SIGINT SIGTERM
 	utils.PanicOnError(err)
 	tmpfile.Sync()
 	tmpfile.Close()
-	logrus.Debugf("[Configure VYOS]: %s\n", command)
+
+	logger.Debugf("[Configure VYOS]: %s\n", command)
+
 	bash := utils.Bash{
 		Command: fmt.Sprintf(`chown vyos:users %s; chmod +x %s; su - vyos -c %v`, tmpfile.Name(), tmpfile.Name(), tmpfile.Name()),
 	}
@@ -136,7 +144,7 @@ trap atexit EXIT SIGHUP SIGINT SIGTERM
 		Arguments: args,
 		NoLog:     true,
 	}
-	logrus.Debugf("[Configure VYOS]: %s\n", command)
+	logger.Debugf("[Configure VYOS]: %s\n", command)
 	bash.Run()
 	bash.PanicIfError()
 }

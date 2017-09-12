@@ -8,6 +8,7 @@ import (
 	"octlink/ovs/utils"
 	"octlink/ovs/utils/configuration"
 	"octlink/ovs/utils/octlog"
+	"octlink/ovs/utils/vyos"
 )
 
 var (
@@ -26,6 +27,7 @@ func initLogConfig() {
 	utils.CreateDir(configuration.LogDirectory())
 	api.InitLog(conf.LogLevel)
 	utils.InitLog(conf.LogLevel)
+	vyos.InitLog(conf.LogLevel)
 }
 
 func initDebugAndLog() {

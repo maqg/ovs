@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"octlink/ovs/utils"
 	"strings"
-
-	log "github.com/Sirupsen/logrus"
 )
 
 // Parser for Vyos
@@ -346,7 +344,7 @@ func (t *ConfigTree) Apply(asVyosUser bool) {
 	}
 
 	if len(t.changeCommands) == 0 {
-		log.Debug("[Vyos Configuration] no changes to apply")
+		logger.Debugf("[Vyos Configuration] no changes to apply")
 		return
 	}
 

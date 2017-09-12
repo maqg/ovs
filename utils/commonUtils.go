@@ -374,11 +374,12 @@ func GetNetworkNumber(ip, netmask string) (string, error) {
 	for i := 0; i < len(ips); i++ {
 		p, err := strconv.ParseUint(ips[i], 10, 32)
 		if err != nil {
+			logger.Panicf("unable to get network number[ip:%v, netmask:%v], error %s\n", ip, netmask, err)
 			return "", errors.Wrap(err, fmt.Sprintf("unable to get network number[ip:%v, netmask:%v]", ip, netmask))
 		}
 		m, err := strconv.ParseUint(masks[i], 10, 32)
-		PanicOnError(err)
 		if err != nil {
+			logger.Panicf("unable to get network number[ip:%v, netmask:%v], error %s\n", ip, netmask, err)
 			return "", errors.Wrap(err, fmt.Sprintf("unable to get network number[ip:%v, netmask:%v]", ip, netmask))
 		}
 		ipInByte[i] = p & m

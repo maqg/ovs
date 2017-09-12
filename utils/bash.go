@@ -28,7 +28,6 @@ type Bash struct {
 }
 
 func (b *Bash) build() error {
-	Assert(b.Command != "", "Command cannot be emptry string")
 
 	if b.Arguments != nil {
 		tmpl, err := template.New("script").Parse(b.Command)
@@ -82,14 +81,27 @@ func (b *Bash) RunWithReturn() (retCode int, stdout, stderr string, err error) {
 
 	if len(b.Command) > 1024*4 {
 		content := []byte(b.Command)
-		tmpfile, err := ioutil.TempFile("/home/vyos", "zvrcommand")
-		PanicOnError(err)
+		tmpfile, err := ioutil.TempFile("/home/vyos", "ovscommand")
+
+		if err != nil {
+			logger.Errorf("create tempfile error of ovscommand\n")
+			return -1, "", "", err
+		}
+
 		err = tmpfile.Chmod(0777)
-		PanicOnError(err)
+		if err != nil {
+			logger.Errorf("create tempfile error of ovscommand %s\n", err)
+			return -1, "", "", err
+		}
+
 		_, err = tmpfile.Write(content)
-		PanicOnError(err)
-		err = tmpfile.Close()
-		PanicOnError(err)
+		if err != nil {
+			logger.Errorf("write content to ovscommand error %s\n", err)
+			return -1, "", "", err
+		}
+
+		tmpfile.Close()
+
 		cmd = exec.Command("bash", "-c", tmpfile.Name())
 		defer os.Remove(tmpfile.Name())
 	} else {
