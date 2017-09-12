@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"octlink/ovs/utils/config"
 	"octlink/ovs/utils/octlog"
@@ -301,4 +302,92 @@ func JSONDecodeHTTPRequest(req *http.Request, val interface{}) (err error) {
 	}
 
 	return nil
+}
+
+// InetAton Convert net.IP to int64
+func InetAton(addr string) int64 {
+	bits := strings.Split(addr, ".")
+	b0, _ := strconv.Atoi(bits[0])
+	b1, _ := strconv.Atoi(bits[1])
+	b2, _ := strconv.Atoi(bits[2])
+	b3, _ := strconv.Atoi(bits[3])
+	return int64(b0)<<24 + int64(b1)<<16 + int64(b2)<<8 + int64(b3)
+}
+
+// InetNtoa convert int64 address to string like "xx.xx.xx.xx"
+func InetNtoa(ipnr int64) string {
+	var bytes [4]byte
+	bytes[0] = byte(ipnr & 0xFF)
+	bytes[1] = byte((ipnr >> 8) & 0xFF)
+	bytes[2] = byte((ipnr >> 16) & 0xFF)
+	bytes[3] = byte((ipnr >> 24) & 0xFF)
+
+	return net.IPv4(bytes[3], bytes[2], bytes[1], bytes[0]).String()
+}
+
+// CIDRToNetmask convert 16 to "255.255.0.0"
+func CIDRToNetmask(cidr int) string {
+
+	var ipint int64
+
+	if cidr > 32 {
+		cidr = 32
+	}
+
+	for i := 0; i < cidr; i++ {
+		ipint += 1 << uint(32-i-1)
+	}
+
+	return InetNtoa(ipint)
+}
+
+// NetmaskToCIDR change "255.255.0.0" to 16
+func NetmaskToCIDR(netmask string) int {
+	countBit := func(num uint) int {
+		count := uint(0)
+		var i uint
+		for i = 31; i > 0; i-- {
+			count += ((num << i) >> uint(31)) & uint(1)
+		}
+
+		return int(count)
+	}
+
+	cidr := 0
+	for _, o := range strings.Split(netmask, ".") {
+		num, err := strconv.ParseUint(o, 10, 32)
+		if err != nil {
+			return -1
+		}
+		cidr += countBit(uint(num))
+	}
+
+	return cidr
+}
+
+// GetNetworkNumber get network number by ip and mask
+func GetNetworkNumber(ip, netmask string) (string, error) {
+	ips := strings.Split(ip, ".")
+	masks := strings.Split(netmask, ".")
+
+	ipInByte := make([]interface{}, 4)
+	for i := 0; i < len(ips); i++ {
+		p, err := strconv.ParseUint(ips[i], 10, 32)
+		if err != nil {
+			return "", errors.Wrap(err, fmt.Sprintf("unable to get network number[ip:%v, netmask:%v]", ip, netmask))
+		}
+		m, err := strconv.ParseUint(masks[i], 10, 32)
+		PanicOnError(err)
+		if err != nil {
+			return "", errors.Wrap(err, fmt.Sprintf("unable to get network number[ip:%v, netmask:%v]", ip, netmask))
+		}
+		ipInByte[i] = p & m
+	}
+
+	cidr := NetmaskToCIDR(netmask)
+	if cidr == -1 {
+		return "", fmt.Errorf("unable to get network number[ip:%v, netmask:%v]", ip, netmask)
+	}
+
+	return fmt.Sprintf("%v.%v.%v.%v/%v", ipInByte[0], ipInByte[1], ipInByte[2], ipInByte[3], cidr), nil
 }

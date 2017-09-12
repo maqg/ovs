@@ -37,7 +37,7 @@ func configureNic(nics []*IfInfo) int {
 	for _, nic := range nics {
 		nicname, err := utils.GetNicNameByMac(nic.Mac)
 		utils.PanicOnError(err)
-		cidr, err := utils.NetmaskToCIDR(nic.Netmask)
+		cidr := utils.NetmaskToCIDR(nic.Netmask)
 		utils.PanicOnError(err)
 		addr := fmt.Sprintf("%v/%v", nic.IP, cidr)
 		tree.SetfWithoutCheckExisting("interfaces ethernet %s address %v", nicname, addr)
@@ -121,7 +121,7 @@ func GetNics() []*IfInfo {
 		ip, netmask, _, err := utils.GetNicInfo(nic.Name)
 		if err == nil {
 			ifinfo.IP = ip
-			ifinfo.Netmask = netmask
+			ifinfo.Netmask = utils.CIDRToNetmask(utils.StringToInt(netmask))
 		}
 		ifs = append(ifs, ifinfo)
 	}
