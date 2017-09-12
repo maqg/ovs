@@ -12,6 +12,9 @@ const (
 
 	// VrRemoveNicPath VR remove nic path
 	VrRemoveNicPath = "/removenic"
+
+	// VrSSHPort for ssh port default
+	VrSSHPort = 22
 )
 
 // Nic for Basic Nic Structure
@@ -37,7 +40,7 @@ func configureNic(ctx *vyos.CommandContext) interface{} {
 		utils.PanicOnError(err)
 		cidr, err := utils.NetmaskToCIDR(nic.Netmask)
 		utils.PanicOnError(err)
-		addr := fmt.Sprintf("%v/%v", nic.Ip, cidr)
+		addr := fmt.Sprintf("%v/%v", nic.IP, cidr)
 		tree.SetfWithoutCheckExisting("interfaces ethernet %s address %v", nicname, addr)
 		tree.SetfWithoutCheckExisting("interfaces ethernet %s duplex auto", nicname)
 		tree.SetfWithoutCheckExisting("interfaces ethernet %s smp_affinity auto", nicname)
@@ -47,12 +50,12 @@ func configureNic(ctx *vyos.CommandContext) interface{} {
 			"action accept",
 			"state established enable",
 			"state related enable",
-			fmt.Sprintf("destination address %v", nic.Ip),
+			fmt.Sprintf("destination address %v", nic.IP),
 		)
 		tree.SetFirewallOnInterface(nicname, "local",
 			"action accept",
 			"protocol icmp",
-			fmt.Sprintf("destination address %v", nic.Ip),
+			fmt.Sprintf("destination address %v", nic.IP),
 		)
 
 		tree.SetFirewallOnInterface(nicname, "in",
@@ -67,8 +70,8 @@ func configureNic(ctx *vyos.CommandContext) interface{} {
 		)
 
 		tree.SetFirewallOnInterface(nicname, "local",
-			fmt.Sprintf("destination port %v", int(getSshPortFromBootInfo())),
-			fmt.Sprintf("destination address %v", nic.Ip),
+			fmt.Sprintf("destination port %v", VrSSHPort),
+			fmt.Sprintf("destination address %v", nic.IP),
 			"protocol tcp",
 			"action accept",
 		)
@@ -101,7 +104,7 @@ func removeNic(ctx *vyos.CommandContext) interface{} {
 	return nil
 }
 
-// GetInterfaces by condition
-func GetInterfaces() []*Nic {
+// GetNics by condition
+func GetNics() []*Nic {
 	return make([]*Nic, 0)
 }

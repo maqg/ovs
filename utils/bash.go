@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Bash Command for shell
 type Bash struct {
 	Command   string
 	PipeFail  bool
@@ -51,20 +52,21 @@ func (b *Bash) build() error {
 	return nil
 }
 
+// Run for bash command
 func (b *Bash) Run() error {
 	ret, so, se, err := b.RunWithReturn()
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("failed to execute the command[%s] because of an internal errro", b.Command))
+		return fmt.Errorf("failed to execute the command[%s] because of an internal errro", b.Command)
 	}
 
 	if ret != 0 {
-		return errors.New(fmt.Sprintf("failed to exectue the command[%s]\nreturn code:%d\nstdout:%s\nstderr:%s\n",
-			b.Command, ret, so, se))
+		return fmt.Errorf("failed to exectue the command[%s],return code:%d,stdout:%s,stderr:%s",
+			b.Command, ret, so, se)
 	}
-
 	return nil
 }
 
+// RunWithReturn Run Command with Reture value
 func (b *Bash) RunWithReturn() (retCode int, stdout, stderr string, err error) {
 	if err = b.build(); err != nil {
 		b.err = err
@@ -128,18 +130,20 @@ func (b *Bash) RunWithReturn() (retCode int, stdout, stderr string, err error) {
 	return
 }
 
-func (bash *Bash) PanicIfError() {
-	if bash.err != nil {
-		panic(errors.New(fmt.Sprintf("shell failure[command: %v], internal error: %v",
-			bash.Command, bash.err)))
+// PanicIfError for bashing
+func (b *Bash) PanicIfError() {
+	if b.err != nil {
+		panic(fmt.Errorf("shell failure[command: %v], internal error: %v",
+			b.Command, b.err))
 	}
 
-	if bash.retCode != 0 {
-		panic(errors.New(fmt.Sprintf("shell failure[command: %v, return code: %v, stdout: %v, stderr: %v",
-			bash.Command, bash.retCode, bash.stdout, bash.stderr)))
+	if b.retCode != 0 {
+		panic(fmt.Errorf("shell failure[command: %v, return code: %v, stdout: %v, stderr: %v",
+			b.Command, b.retCode, b.stdout, b.stderr))
 	}
 }
 
+// NewBash for Bash Comand
 func NewBash() *Bash {
 	return &Bash{}
 }
