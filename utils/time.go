@@ -3,10 +3,9 @@ package utils
 import (
 	"fmt"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
+// LoopRunUntilSuccessOrTimeout to run until OK or timeout
 func LoopRunUntilSuccessOrTimeout(fn func() bool, timeout, interval time.Duration) error {
 	expiredTime := time.Now().Add(timeout)
 	tk := time.NewTicker(interval)
@@ -19,7 +18,7 @@ func LoopRunUntilSuccessOrTimeout(fn func() bool, timeout, interval time.Duratio
 
 		now := <-tk.C
 		if now.After(expiredTime) {
-			return errors.New(fmt.Sprintf("timeout after %v", timeout))
+			return fmt.Errorf("timeout after %v", timeout)
 		}
 	}
 }

@@ -13,10 +13,14 @@ import (
 )
 
 const (
-	RVM_ROUTE_PROTO            = "rvm"
-	RVM_ROUTE_PROTO_IDENTIFFER = "192"
+	// RvmRouteProto rvm route proto
+	RvmRouteProto = "rvm"
+
+	// RvmRouteProtoIdentifier with 192
+	RvmRouteProtoIdentifier = "192"
 )
 
+// NetmaskToCIDR change "255.255.0.0" to 16
 func NetmaskToCIDR(netmask string) (int, error) {
 	countBit := func(num uint) int {
 		count := uint(0)
@@ -40,6 +44,7 @@ func NetmaskToCIDR(netmask string) (int, error) {
 	return cidr, nil
 }
 
+// GetNetworkNumber get network number by ip and mask
 func GetNetworkNumber(ip, netmask string) (string, error) {
 	ips := strings.Split(ip, ".")
 	masks := strings.Split(netmask, ".")
@@ -66,16 +71,19 @@ func GetNetworkNumber(ip, netmask string) (string, error) {
 	return fmt.Sprintf("%v.%v.%v.%v/%v", ipInByte[0], ipInByte[1], ipInByte[2], ipInByte[3], cidr), nil
 }
 
+// Nic base structure
 type Nic struct {
 	Name string
 	Mac  string
 }
 
+// String convert Nic to string
 func (nic Nic) String() string {
 	s, _ := json.Marshal(nic)
 	return string(s)
 }
 
+// GetAllNics with name and mac address
 func GetAllNics() (map[string]Nic, error) {
 	const ROOT = "/sys/class/net"
 
@@ -104,6 +112,7 @@ func GetAllNics() (map[string]Nic, error) {
 	return nics, nil
 }
 
+// GetNicNameByMac get nicname by mac address
 func GetNicNameByMac(mac string) (string, error) {
 	nics, err := GetAllNics()
 	if err != nil {
@@ -119,7 +128,29 @@ func GetNicNameByMac(mac string) (string, error) {
 	return "", fmt.Errorf("cannot find any nic with the mac[%s]", mac)
 }
 
-func GetNicNameByIp(ip string) (string, error) {
+// GetNicInfo get ip address,netmask and network by nic name
+func GetNicInfo(nicname string) (string, string, string, error) {
+	bash := Bash{
+		Command: fmt.Sprintf("ip addr show %s | grep -w inet", nicname),
+	}
+	ret, o, _, err := bash.RunWithReturn()
+	if err != nil {
+		return "", "", "", err
+	}
+	if ret != 0 {
+		return "", "", "", fmt.Errorf("no nic info the name of [%s] found in the system", nicname)
+	}
+
+	o = strings.TrimSpace(o)
+	os := strings.Split(o, " ")
+
+	addr := strings.Split(os[1], "/")
+
+	return addr[0], addr[1], os[3], nil
+}
+
+// GetNicNameByIP get nic name by ip address
+func GetNicNameByIP(ip string) (string, error) {
 	bash := Bash{
 		Command: fmt.Sprintf("ip addr | grep -w %s", ip),
 	}
@@ -128,7 +159,7 @@ func GetNicNameByIp(ip string) (string, error) {
 		return "", err
 	}
 	if ret != 0 {
-		return "", errors.New(fmt.Sprintf("no nic with the IP[%s] found in the system", ip))
+		return "", fmt.Errorf("no nic with the IP[%s] found in the system", ip)
 	}
 
 	o = strings.TrimSpace(o)
@@ -136,15 +167,17 @@ func GetNicNameByIp(ip string) (string, error) {
 	return os[len(os)-1], nil
 }
 
-func GetIpFromUrl(url string) (string, error) {
+// GetIPFromURL get ip address from url
+func GetIPFromURL(url string) (string, error) {
 	ip := strings.Split(strings.Split(url, "/")[2], ":")[0]
 	return ip, nil
 }
 
-func SetZStackRoute(ip string, nic string) error {
-	SetZStackRouteProtoIdentifier()
+// SetRvmRoute to set rvm route config
+func SetRvmRoute(ip string, nic string) error {
+	SetRvmRouteProtoIdentifier()
 	bash := Bash{
-		Command: fmt.Sprintf("ip route add %s/32 dev %s proto %s", ip, nic, RVM_ROUTE_PROTO),
+		Command: fmt.Sprintf("ip route add %s/32 dev %s proto %s", ip, nic, RvmRouteProto),
 	}
 	ret, _, _, err := bash.RunWithReturn()
 	if err != nil {
@@ -152,29 +185,31 @@ func SetZStackRoute(ip string, nic string) error {
 	}
 	// NOTE(WeiW): It will return 2 if exists
 	if ret != 0 && ret != 2 {
-		return errors.New(fmt.Sprintf("add route to %s/32 use dev %s failed", ip, nic))
+		return fmt.Errorf("add route to %s/32 use dev %s failed", ip, nic)
 	}
 
 	return nil
 }
 
-func RemoveZStackRoute(ip string, nic string) error {
-	SetZStackRouteProtoIdentifier()
+// RemoveRvmRoute to remove rvm route config
+func RemoveRvmRoute(ip string, nic string) error {
+	SetRvmRouteProtoIdentifier()
 	bash := Bash{
-		Command: fmt.Sprintf("ip route del %s/32 dev %s proto %s", ip, nic, RVM_ROUTE_PROTO),
+		Command: fmt.Sprintf("ip route del %s/32 dev %s proto %s", ip, nic, RvmRouteProto),
 	}
 	ret, _, _, err := bash.RunWithReturn()
 	if err != nil {
 		return err
 	}
 	if ret != 0 {
-		return errors.New(fmt.Sprintf("del route to %s/32 use dev %s failed", ip, nic))
+		return fmt.Errorf("del route to %s/32 use dev %s failed", ip, nic)
 	}
 
 	return nil
 }
 
-func SetZStackRouteProtoIdentifier() {
+// SetRvmRouteProtoIdentifier for rvm
+func SetRvmRouteProtoIdentifier() {
 	bash := Bash{
 		Command: "grep rvm /etc/iproute2/rt_protos",
 	}
@@ -183,7 +218,7 @@ func SetZStackRouteProtoIdentifier() {
 	if check != 0 {
 		log.Debugf("no route proto rvm in /etc/iproute2/rt_protos")
 		bash = Bash{
-			Command: fmt.Sprintf("sudo bash -c \"echo -e '\n\n# Used by rvm\n%s     rvm' >> /etc/iproute2/rt_protos\"", RVM_ROUTE_PROTO_IDENTIFFER),
+			Command: fmt.Sprintf("sudo bash -c \"echo -e '\n\n# Used by rvm\n%s     rvm' >> /etc/iproute2/rt_protos\"", RvmRouteProtoIdentifier),
 		}
 		bash.Run()
 	}

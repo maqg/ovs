@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// FindPIDByPS to find pid by ps command
 func FindPIDByPS(cmdline ...string) (int, error) {
 	Assert(cmdline != nil, "cmdline must have one parameter at least")
 
@@ -34,10 +35,12 @@ func FindPIDByPS(cmdline ...string) (int, error) {
 	return strconv.Atoi(o)
 }
 
+// KillProcess to kill process by pid
 func KillProcess(pid int) error {
 	return KillProcess1(pid, 15)
 }
 
+// KillProcess1 to kill process1 by pid
 func KillProcess1(pid int, waitTime uint) error {
 	b := Bash{
 		Command: fmt.Sprintf("kill %v", pid),

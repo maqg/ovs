@@ -118,6 +118,11 @@ func GetNics() []*IfInfo {
 			Name: nic.Name,
 			Mac:  nic.Mac,
 		}
+		ip, netmask, _, err := utils.GetNicInfo(nic.Name)
+		if err == nil {
+			ifinfo.IP = ip
+			ifinfo.Netmask = netmask
+		}
 		ifs = append(ifs, ifinfo)
 	}
 

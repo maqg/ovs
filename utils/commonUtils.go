@@ -289,8 +289,8 @@ func RemoveFromArrayEx(s []interface{}, i int) []interface{} {
 	return s[:len(s)-1]
 }
 
-// JsonDecodeHttpRequest for json decode http request
-func JsonDecodeHttpRequest(req *http.Request, val interface{}) (err error) {
+// JSONDecodeHTTPRequest for json decode http request
+func JSONDecodeHTTPRequest(req *http.Request, val interface{}) (err error) {
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		return errors.Wrap(err, "unable to read the request, %s")

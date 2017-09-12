@@ -6,6 +6,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
+// Retry for loops
 func Retry(fn func() error, retryTimes uint, interval uint) error {
 	for {
 		err := fn()

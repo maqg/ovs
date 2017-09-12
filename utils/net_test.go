@@ -47,10 +47,10 @@ func TestGetAllNics(t *testing.T) {
 }
 
 func TestGetIpFromUrl(t *testing.T) {
-	ip, err := GetIpFromUrl("http://172.20.14.15:8080/rvm/asyncrest/callback")
+	ip, err := GetIPFromURL("http://172.20.14.15:8080/rvm/asyncrest/callback")
 	Assert(err == nil, "error")
 	Assert("172.20.14.15" == ip, ip)
 
-	ip, _ = GetIpFromUrl("http://172.20.14.15/rvm/asyncrest/callback")
+	ip, _ = GetIPFromURL("http://172.20.14.15/rvm/asyncrest/callback")
 	Assert("172.20.14.15" == ip, ip)
 }
