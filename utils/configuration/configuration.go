@@ -22,7 +22,7 @@ type Configuration struct {
 	DebugLevel int `yaml:"debuglevel,omitempty"`
 
 	// LogDirectory for root directory
-	LogDirectory string `yaml:"rootdirectory,omitempty"`
+	LogDirectory string `yaml:"logdirectory,omitempty"`
 
 	HTTP struct {
 		Addr string `yaml:"addr,omitempty"`
