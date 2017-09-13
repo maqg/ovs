@@ -127,5 +127,11 @@ func GetNics() []*IfInfo {
 		ifs = append(ifs, ifinfo)
 	}
 
+	tree := vyos.NewParserFromShowConfiguration().Tree
+
+	if rs := tree.Getf("nat source rule"); rs != nil {
+		logger.Debugf("got nat rule of %s\n", rs.String())
+	}
+
 	return ifs
 }

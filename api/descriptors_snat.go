@@ -15,6 +15,18 @@ var snatDescriptors = Module{
 					Default: ParamNotNull,
 				},
 				{
+					Name:    "privateNicIp",
+					Type:    ParamTypeString,
+					Desc:    "Private Nic IP Address",
+					Default: "0.0.0.0",
+				},
+				{
+					Name:    "netmask",
+					Type:    ParamTypeString,
+					Desc:    "Private Netmask Address",
+					Default: "0.0.0.0",
+				},
+				{
 					Name:    "publicNicMac",
 					Type:    ParamTypeString,
 					Desc:    "Public Nic Mac Address",
