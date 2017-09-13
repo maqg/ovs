@@ -27,77 +27,92 @@ type IfInfo struct {
 	Mac     string `json:"mac"`
 }
 
-// ConfigureNic for nic infos config
-func ConfigureNic(nics []*IfInfo) int {
+// ConfigureNic by ifinfo
+func (nic *IfInfo) ConfigureNic() int {
 
 	tree := vyos.NewParserFromShowConfiguration().Tree
+
+	nicname, err := utils.GetNicNameByMac(nic.Mac)
+	utils.PanicOnError(err)
+	cidr := utils.NetmaskToCIDR(nic.Netmask)
+	utils.PanicOnError(err)
+
+	addr := fmt.Sprintf("%v/%v", nic.IP, cidr)
+	tree.SetfWithoutCheckExisting("interfaces ethernet %s address %v", nicname, addr)
+	tree.SetfWithoutCheckExisting("interfaces ethernet %s duplex auto", nicname)
+	tree.SetfWithoutCheckExisting("interfaces ethernet %s smp_affinity auto", nicname)
+	tree.SetfWithoutCheckExisting("interfaces ethernet %s speed auto", nicname)
+
+	tree.SetFirewallOnInterface(nicname, "local",
+		"action accept",
+		"state established enable",
+		"state related enable",
+		fmt.Sprintf("destination address %v", nic.IP),
+	)
+	tree.SetFirewallOnInterface(nicname, "local",
+		"action accept",
+		"protocol icmp",
+		fmt.Sprintf("destination address %v", nic.IP),
+	)
+
+	tree.SetFirewallOnInterface(nicname, "in",
+		"action accept",
+		"state established enable",
+		"state related enable",
+		"state new enable",
+	)
+	tree.SetFirewallOnInterface(nicname, "in",
+		"action accept",
+		"protocol icmp",
+	)
+
+	tree.SetFirewallOnInterface(nicname, "local",
+		fmt.Sprintf("destination port %v", VrSSHPort),
+		fmt.Sprintf("destination address %v", nic.IP),
+		"protocol tcp",
+		"action accept",
+	)
+
+	tree.SetFirewallDefaultAction(nicname, "local", "reject")
+	tree.SetFirewallDefaultAction(nicname, "in", "reject")
+
+	tree.AttachFirewallToInterface(nicname, "local")
+	tree.AttachFirewallToInterface(nicname, "in")
+
+	tree.Apply(false)
+
+	return 0
+}
+
+// ConfigureNics for nic infos config
+func ConfigureNics(nics []*IfInfo) int {
 	for _, nic := range nics {
-		nicname, err := utils.GetNicNameByMac(nic.Mac)
-		utils.PanicOnError(err)
-		cidr := utils.NetmaskToCIDR(nic.Netmask)
-		utils.PanicOnError(err)
-
-		addr := fmt.Sprintf("%v/%v", nic.IP, cidr)
-		tree.SetfWithoutCheckExisting("interfaces ethernet %s address %v", nicname, addr)
-		tree.SetfWithoutCheckExisting("interfaces ethernet %s duplex auto", nicname)
-		tree.SetfWithoutCheckExisting("interfaces ethernet %s smp_affinity auto", nicname)
-		tree.SetfWithoutCheckExisting("interfaces ethernet %s speed auto", nicname)
-
-		tree.SetFirewallOnInterface(nicname, "local",
-			"action accept",
-			"state established enable",
-			"state related enable",
-			fmt.Sprintf("destination address %v", nic.IP),
-		)
-		tree.SetFirewallOnInterface(nicname, "local",
-			"action accept",
-			"protocol icmp",
-			fmt.Sprintf("destination address %v", nic.IP),
-		)
-
-		tree.SetFirewallOnInterface(nicname, "in",
-			"action accept",
-			"state established enable",
-			"state related enable",
-			"state new enable",
-		)
-		tree.SetFirewallOnInterface(nicname, "in",
-			"action accept",
-			"protocol icmp",
-		)
-
-		tree.SetFirewallOnInterface(nicname, "local",
-			fmt.Sprintf("destination port %v", VrSSHPort),
-			fmt.Sprintf("destination address %v", nic.IP),
-			"protocol tcp",
-			"action accept",
-		)
-
-		tree.SetFirewallDefaultAction(nicname, "local", "reject")
-		tree.SetFirewallDefaultAction(nicname, "in", "reject")
-
-		tree.AttachFirewallToInterface(nicname, "local")
-		tree.AttachFirewallToInterface(nicname, "in")
+		nic.ConfigureNic()
 	}
+	return merrors.ErrSuccess
+}
+
+// RemoveNic by ifinfo
+func (nic *IfInfo) RemoveNic() int {
+
+	tree := vyos.NewParserFromShowConfiguration().Tree
+
+	nicname, err := utils.GetNicNameByMac(nic.Mac)
+	utils.PanicOnError(err)
+	tree.Deletef("interfaces ethernet %s", nicname)
+	tree.Deletef("firewall name %s.in", nicname)
+	tree.Deletef("firewall name %s.local", nicname)
 
 	tree.Apply(false)
 
 	return merrors.ErrSuccess
 }
 
-// RemoveNic for nics removing
-func RemoveNic(nics []*IfInfo) int {
-
-	tree := vyos.NewParserFromShowConfiguration().Tree
+// RemoveNics for nics removing
+func RemoveNics(nics []*IfInfo) int {
 	for _, nic := range nics {
-		nicname, err := utils.GetNicNameByMac(nic.Mac)
-		utils.PanicOnError(err)
-		tree.Deletef("interfaces ethernet %s", nicname)
-		tree.Deletef("firewall name %s.in", nicname)
-		tree.Deletef("firewall name %s.local", nicname)
+		nic.RemoveNic()
 	}
-	tree.Apply(false)
-
 	return merrors.ErrSuccess
 }
 
