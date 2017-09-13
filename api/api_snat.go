@@ -1,11 +1,11 @@
 package api
 
-import "octlink/ovs/modules/snat"
+import "octlink/ovs/plugins"
 
 // AddSnat to add image by API
 func AddSnat(paras *Paras) *Response {
 
-	sn := &snat.Snat{
+	sn := &plugins.Snat{
 		PrivateNicMac: paras.Get("privateNicMac"),
 		PrivateNicIP:  paras.Get("privateNicIp"),
 		SnatNetmask:   paras.Get("netmask"),
@@ -14,14 +14,14 @@ func AddSnat(paras *Paras) *Response {
 	}
 
 	return &Response{
-		Error: sn.Add(),
+		Error: sn.AddSnat(),
 	}
 }
 
 // SyncSnat to add image by API
 func SyncSnat(paras *Paras) *Response {
 
-	sn := &snat.Snat{
+	sn := &plugins.Snat{
 		PrivateNicMac: paras.Get("privateNicMac"),
 		PrivateNicIP:  paras.Get("privateNicIp"),
 		SnatNetmask:   paras.Get("netmask"),
@@ -30,7 +30,7 @@ func SyncSnat(paras *Paras) *Response {
 	}
 
 	return &Response{
-		Error: sn.Sync(),
+		Error: sn.SyncSnat(),
 	}
 }
 
@@ -41,26 +41,26 @@ func ShowSnat(paras *Paras) *Response {
 	netmask := paras.Get("netmask")
 
 	return &Response{
-		Data: snat.GetSnat(privateIP, netmask),
+		Data: plugins.GetSnat(privateIP, netmask),
 	}
 }
 
 // DeleteSnat to delete image
 func DeleteSnat(paras *Paras) *Response {
 
-	sn := snat.Snat{
+	sn := plugins.Snat{
 		PrivateNicIP: paras.Get("privateNicIp"),
 		SnatNetmask:  paras.Get("netmask"),
 	}
 
 	return &Response{
-		Error: sn.Remove(),
+		Error: sn.RemoveSnat(),
 	}
 }
 
 // ShowAllSnats to display all images by condition
 func ShowAllSnats(paras *Paras) *Response {
 	return &Response{
-		Data: snat.GetAllSnats(),
+		Data: plugins.GetAllSnats(),
 	}
 }

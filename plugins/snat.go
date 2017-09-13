@@ -1,19 +1,11 @@
-package snat
+package plugins
 
 import (
 	"fmt"
 	"octlink/ovs/utils"
 	"octlink/ovs/utils/merrors"
-	"octlink/ovs/utils/octlog"
 	"octlink/ovs/utils/vyos"
 )
-
-var logger *octlog.LogConfig
-
-// InitLog to init log config
-func InitLog(level int) {
-	logger = octlog.InitLogConfig("image.log", level)
-}
 
 const (
 	// SetSnatPath for Set SNAT
@@ -59,9 +51,9 @@ func hasRuleNumberForAddress(tree *vyos.ConfigTree, address string) bool {
 	return false
 }
 
-// Add for image, after image added,
+// AddSnat for image, after image added,
 // installpath, diskSize, virtualSize, Status, md5sum need update after manifest installed
-func (s *Snat) Add() int {
+func (s *Snat) AddSnat() int {
 
 	tree := vyos.NewParserFromShowConfiguration().Tree
 	outNic, err := utils.GetNicNameByMac(s.PublicNicMac)
@@ -89,8 +81,8 @@ func (s *Snat) Add() int {
 	return 0
 }
 
-// Remove Snat rule
-func (s *Snat) Remove() int {
+// RemoveSnat Snat rule
+func (s *Snat) RemoveSnat() int {
 
 	tree := vyos.NewParserFromShowConfiguration().Tree
 	rs := tree.Get("nat source rule")
@@ -116,8 +108,8 @@ func (s *Snat) Remove() int {
 	return merrors.ErrSuccess
 }
 
-// Sync Snat rule, delete it firstly and then add it back.
-func (s *Snat) Sync() int {
+// SyncSnat Snat rule, delete it firstly and then add it back.
+func (s *Snat) SyncSnat() int {
 
 	tree := vyos.NewParserFromShowConfiguration().Tree
 

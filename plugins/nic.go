@@ -1,4 +1,4 @@
-package nic
+package plugins
 
 import (
 	"fmt"
@@ -27,11 +27,8 @@ type IfInfo struct {
 	Mac     string `json:"mac"`
 }
 
-type configureNicCmd struct {
-	Nics []IfInfo `json:"nics"`
-}
-
-func configureNic(nics []*IfInfo) int {
+// ConfigureNic for nic infos config
+func ConfigureNic(nics []*IfInfo) int {
 
 	tree := vyos.NewParserFromShowConfiguration().Tree
 	for _, nic := range nics {
@@ -88,7 +85,8 @@ func configureNic(nics []*IfInfo) int {
 	return merrors.ErrSuccess
 }
 
-func removeNic(nics []*IfInfo) int {
+// RemoveNic for nics removing
+func RemoveNic(nics []*IfInfo) int {
 
 	tree := vyos.NewParserFromShowConfiguration().Tree
 	for _, nic := range nics {

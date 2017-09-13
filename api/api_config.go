@@ -1,10 +1,10 @@
 package api
 
-import "octlink/ovs/modules/systemconfig"
+import "octlink/ovs/plugins"
 
 // ShowSystemConfig to add image by API
 func ShowSystemConfig(paras *Paras) *Response {
 	return &Response{
-		Data: systemconfig.GetSystemConfig(),
+		Data: plugins.GetSystemConfig(),
 	}
 }

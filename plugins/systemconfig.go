@@ -1,4 +1,4 @@
-package systemconfig
+package plugins
 
 import (
 	"octlink/ovs/utils/configuration"

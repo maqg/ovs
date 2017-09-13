@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"octlink/ovs/api"
+	"octlink/ovs/plugins"
 	"octlink/ovs/utils"
 	"octlink/ovs/utils/configuration"
 	"octlink/ovs/utils/octlog"
@@ -26,8 +27,12 @@ func initDebugConfig() {
 func initLogConfig() {
 	utils.CreateDir(configuration.LogDirectory())
 	api.InitLog(conf.LogLevel)
+
 	utils.InitLog(conf.LogLevel)
+
 	vyos.InitLog(conf.LogLevel)
+
+	plugins.InitLog(conf.LogLevel)
 }
 
 func initDebugAndLog() {
