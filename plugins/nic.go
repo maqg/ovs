@@ -127,8 +127,8 @@ func GetNics() []*IfInfo {
 
 	tree := vyos.NewParserFromShowConfiguration().Tree
 
-	if rs := tree.Getf("nat source rule"); rs != nil {
-		logger.Debugf("got nat rule of %s\n", rs.String())
+	if rs := tree.Getf("interfaces ethernet"); rs != nil {
+		logger.Debugf("ethernet config %s\n", rs.String())
 	}
 
 	return ifs
