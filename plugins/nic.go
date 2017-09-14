@@ -135,7 +135,7 @@ func GetNics() []*IfInfo {
 		ip, netmask, _, err := utils.GetNicInfo(nic.Name)
 		if err == nil {
 			ifinfo.IP = ip
-			ifinfo.Netmask = utils.CIDRToNetmask(utils.StringToInt(netmask))
+			ifinfo.Netmask = netmask
 		}
 		ifs = append(ifs, ifinfo)
 	}

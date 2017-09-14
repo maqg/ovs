@@ -4,6 +4,7 @@ package api
 var snatDescriptors = Module{
 	Name: "snat",
 	Protos: map[string]Proto{
+
 		"APIAddSnat": {
 			Name:    "添加SNAT",
 			handler: AddSnat,
@@ -15,16 +16,29 @@ var snatDescriptors = Module{
 					Default: ParamNotNull,
 				},
 				{
-					Name:    "privateNicIp",
+					Name:    "publicNicMac",
 					Type:    ParamTypeString,
-					Desc:    "Private Nic IP Address",
-					Default: "0.0.0.0",
+					Desc:    "Public Nic Mac Address",
+					Default: ParamNotNull,
 				},
 				{
-					Name:    "netmask",
+					Name:    "publicIp",
 					Type:    ParamTypeString,
-					Desc:    "Private Netmask Address",
-					Default: "0.0.0.0",
+					Desc:    "Public IP Address",
+					Default: ParamNotNull,
+				},
+			},
+		},
+
+		"APISyncSnat": {
+			Name:    "同步SNAT",
+			handler: SyncSnat,
+			Paras: []ProtoPara{
+				{
+					Name:    "privateNicMac",
+					Type:    ParamTypeString,
+					Desc:    "Private Nic Mac Address",
+					Default: ParamNotNull,
 				},
 				{
 					Name:    "publicNicMac",

@@ -392,3 +392,13 @@ func GetNetworkNumber(ip, netmask string) (string, error) {
 
 	return fmt.Sprintf("%v.%v.%v.%v/%v", ipInByte[0], ipInByte[1], ipInByte[2], ipInByte[3], cidr), nil
 }
+
+// ParseCIDR covert "1.1.1.0/24" to 1.1.1.0, 255.255.255.0
+func ParseCIDR(cidr string) (string, string) {
+	segs := strings.Split(cidr, "/")
+	if len(segs) != 2 {
+		return "", ""
+	}
+
+	return segs[0], CIDRToNetmask(StringToInt(segs[1]))
+}

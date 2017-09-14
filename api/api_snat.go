@@ -7,8 +7,6 @@ func AddSnat(paras *Paras) *Response {
 
 	sn := &plugins.Snat{
 		PrivateNicMac: paras.Get("privateNicMac"),
-		PrivateNicIP:  paras.Get("privateNicIp"),
-		SnatNetmask:   paras.Get("netmask"),
 		PublicNicMac:  paras.Get("publicNicMac"),
 		PublicIP:      paras.Get("publicIp"),
 	}
@@ -23,8 +21,6 @@ func SyncSnat(paras *Paras) *Response {
 
 	sn := &plugins.Snat{
 		PrivateNicMac: paras.Get("privateNicMac"),
-		PrivateNicIP:  paras.Get("privateNicIp"),
-		SnatNetmask:   paras.Get("netmask"),
 		PublicNicMac:  paras.Get("publicNicMac"),
 		PublicIP:      paras.Get("publicIp"),
 	}
@@ -37,11 +33,11 @@ func SyncSnat(paras *Paras) *Response {
 // ShowSnat by api
 func ShowSnat(paras *Paras) *Response {
 
-	privateIP := paras.Get("privateNicIp")
-	netmask := paras.Get("netmask")
+	nat, err := plugins.GetSnat(paras.Get("privateNicMac"))
 
 	return &Response{
-		Data: plugins.GetSnat(privateIP, netmask),
+		Data:  nat,
+		Error: err,
 	}
 }
 
@@ -49,8 +45,7 @@ func ShowSnat(paras *Paras) *Response {
 func DeleteSnat(paras *Paras) *Response {
 
 	sn := plugins.Snat{
-		PrivateNicIP: paras.Get("privateNicIp"),
-		SnatNetmask:  paras.Get("netmask"),
+		PrivateNicMac: paras.Get("privateNicMac"),
 	}
 
 	return &Response{

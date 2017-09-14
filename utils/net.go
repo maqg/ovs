@@ -88,6 +88,35 @@ func GetNicMacByName(nicname string) string {
 	return ""
 }
 
+// GetNicIP get nic IP by nicname
+func GetNicIP(nicname string) string {
+	ip, _, _, _ := GetNicInfo(nicname)
+	return ip
+}
+
+// GetNicIPByMac get nic IP by mac
+func GetNicIPByMac(mac string) string {
+
+	nicname, err := GetNicNameByMac(mac)
+	if err != nil {
+		return ""
+	}
+
+	ip, _, _, _ := GetNicInfo(nicname)
+
+	return ip
+}
+
+// GetNicInfoByMac get nic info by mac address
+func GetNicInfoByMac(mac string) (string, string, string, error) {
+	nicname, err := GetNicNameByMac(mac)
+	if err != nil {
+		return "", "", "", err
+	}
+
+	return GetNicInfo(nicname)
+}
+
 // GetNicInfo get ip address,netmask and network by nic name
 func GetNicInfo(nicname string) (string, string, string, error) {
 	bash := Bash{
@@ -106,7 +135,7 @@ func GetNicInfo(nicname string) (string, string, string, error) {
 
 	addr := strings.Split(os[1], "/")
 
-	return addr[0], addr[1], os[3], nil
+	return addr[0], CIDRToNetmask(StringToInt(addr[1])), os[3], nil
 }
 
 // GetNicNameByIP get nic name by ip address

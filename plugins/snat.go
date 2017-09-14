@@ -42,12 +42,25 @@ func hasRuleNumberForAddress(tree *vyos.ConfigTree, address string) bool {
 func (s *Snat) AddSnat() int {
 
 	tree := vyos.NewParserFromShowConfiguration().Tree
+
 	outNic, err := utils.GetNicNameByMac(s.PublicNicMac)
+	if err != nil {
+		logger.Panicf("get nic name by mac %s error %s\n", s.PublicNicMac, err)
+		return merrors.ErrBadParas
+	}
 
-	utils.PanicOnError(err)
+	privateIP, snatNetmask, _, err := utils.GetNicInfoByMac(s.PrivateNicMac)
+	if err != nil {
+		logger.Panicf("get nic info by mac %s error, %s\n", s.PrivateNicMac, err)
+		return merrors.ErrBadParas
+	}
 
-	address, err := utils.GetNetworkNumber(s.PrivateNicIP, s.SnatNetmask)
-	utils.PanicOnError(err)
+	address, err := utils.GetNetworkNumber(privateIP, snatNetmask)
+	if err != nil {
+		logger.Panicf("get network number by %s:%s error, %s\n",
+			privateIP, snatNetmask, err)
+		return merrors.ErrBadParas
+	}
 
 	if hasRuleNumberForAddress(tree, address) {
 		logger.Errorf("not enough rule number for snat, address[%s]\n", address)
@@ -77,6 +90,18 @@ func (s *Snat) RemoveSnat() int {
 		return merrors.ErrSuccess
 	}
 
+	privateNicIP, snatNetmask, _, err := utils.GetNicInfoByMac(s.PrivateNicMac)
+	if err != nil {
+		logger.Errorf("get nic info of %s error\n", s.PrivateNicMac)
+		return merrors.ErrBadParas
+	}
+
+	s.PrivateNicIP = privateNicIP
+	s.SnatNetmask = snatNetmask
+
+	logger.Debugf("get network of %s source rule of %s:%s\n",
+		s.PrivateNicMac, s.PrivateNicIP, s.SnatNetmask)
+
 	address, err := utils.GetNetworkNumber(s.PrivateNicIP, s.SnatNetmask)
 	if err != nil {
 		logger.Panicf("nat source rule of %s:%s not exist\n", s.PrivateNicIP, s.SnatNetmask)
@@ -101,16 +126,21 @@ func (s *Snat) SyncSnat() int {
 
 	outNic, err := utils.GetNicNameByMac(s.PublicNicMac)
 	if err != nil {
-		logger.Panicf("Get Nic Name by Mac %s error %s\n", s.PublicNicMac, err)
-		return merrors.ErrSegmentNotExist
+		logger.Panicf("get nic name by mac %s error %s\n", s.PublicNicMac, err)
+		return merrors.ErrBadParas
 	}
 
-	address, err := utils.GetNetworkNumber(s.PrivateNicIP, s.SnatNetmask)
+	privateIP, snatNetmask, _, err := utils.GetNicInfoByMac(s.PrivateNicMac)
 	if err != nil {
-		logger.Panicf("Get Network Number error %s:%s %s\n",
-			s.PrivateNicIP, s.SnatNetmask, err)
+		logger.Panicf("get nic info by mac %s error, %s\n", s.PrivateNicMac, err)
 		return merrors.ErrBadParas
+	}
 
+	address, err := utils.GetNetworkNumber(privateIP, snatNetmask)
+	if err != nil {
+		logger.Panicf("get network number by %s:%s error, %s\n",
+			privateIP, snatNetmask, err)
+		return merrors.ErrBadParas
 	}
 
 	if rs := tree.Getf("nat source rule %v", SnatRuleNumber); rs != nil {
@@ -129,8 +159,26 @@ func (s *Snat) SyncSnat() int {
 }
 
 // GetSnat get snat settings
-func GetSnat(privateIP string, netmask string) *Snat {
-	return nil
+func GetSnat(privateNicMac string) (*Snat, int) {
+
+	privateIP, netmask, _, err := utils.GetNicInfoByMac(privateNicMac)
+	if err != nil {
+		logger.Errorf("not nic info got for private mac %s\n", privateNicMac)
+		return nil, merrors.ErrBadParas
+	}
+	network, _ := utils.GetNetworkNumber(privateIP, netmask)
+
+	rules := GetAllSnats()
+	for _, nat := range rules {
+		if n, _ := utils.GetNetworkNumber(nat.PrivateNicIP, nat.SnatNetmask); n == network {
+			logger.Debugf("found nat rule of %s\n", network)
+			return nat, merrors.ErrSuccess
+		}
+	}
+
+	logger.Errorf("not found nat rule of %s\n", network)
+
+	return nil, merrors.ErrSegmentNotExist
 }
 
 // GetAllSnats by condition
@@ -140,23 +188,39 @@ func GetAllSnats() []*Snat {
 
 	sn := new(Snat)
 
-	if rs := tree.Getf("nat source rule %s", SnatRuleNumber); rs != nil {
-
-		outNic := rs.Get("outbound-interface").Value()
+	rule := tree.Getf("nat source rule %d", SnatRuleNumber)
+	if rule != nil {
+		outNic := rule.Get("outbound-interface").Value()
 		sn.PublicNicMac = utils.GetNicMacByName(outNic)
-
 		logger.Debugf("Got nat oubound-interface %s:%s\n", outNic, sn.PublicNicMac)
 	}
 
-	if rs := tree.Getf("nat source rule %s source", SnatRuleNumber); rs != nil {
-		sn.PrivateNicIP = rs.Get("address").Value()
-		logger.Debugf("Got nat private nic ip %s\n", sn.PrivateNicIP)
+	if rs := rule.Getf("source address"); rs != nil {
+		addr, netmask := utils.ParseCIDR(rs.Value())
+		sn.PrivateNicIP = addr
+		sn.SnatNetmask = netmask
+		logger.Debugf("Got nat private nic ip %s/%s\n", sn.PrivateNicIP, sn.SnatNetmask)
 	}
 
-	if rs := tree.Getf("nat source rule %s translation", SnatRuleNumber); rs != nil {
-		sn.PublicIP = rs.Get("address").Value()
+	if rs := rule.Getf("translation address"); rs != nil {
+		sn.PublicIP = rs.Value()
 		logger.Debugf("Got nat public nic ip %s\n", sn.PrivateNicIP)
 	}
+
+	/*
+
+		if rs := tree.Getf("nat source rule %d source", SnatRuleNumber); rs != nil {
+			addr, netmask := utils.ParseCIDR(rs.Get("address").Value())
+			sn.PrivateNicIP = addr
+			sn.SnatNetmask = netmask
+			logger.Debugf("Got nat private nic ip %s/%s\n", sn.PrivateNicIP, sn.SnatNetmask)
+		}
+
+		if rs := tree.Getf("nat source rule %d translation", SnatRuleNumber); rs != nil {
+			sn.PublicIP = rs.Get("address").Value()
+			logger.Debugf("Got nat public nic ip %s\n", sn.PrivateNicIP)
+		}
+	*/
 
 	return []*Snat{
 		sn,
