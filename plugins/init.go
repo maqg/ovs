@@ -7,6 +7,9 @@ var logger *octlog.LogConfig
 const (
 	// EipSnatStartRuleNum for snat rule
 	EipSnatStartRuleNum = 5000
+
+	// SnatRuleNumber for max snat rule number
+	SnatRuleNumber = 8888
 )
 
 // InitLog to init log config

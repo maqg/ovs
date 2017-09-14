@@ -76,6 +76,18 @@ func GetNicNameByMac(mac string) (string, error) {
 	return "", fmt.Errorf("cannot find any nic with the mac[%s]", mac)
 }
 
+// GetNicMacByName get mac address by nic name
+func GetNicMacByName(nicname string) string {
+	nics, _ := GetAllNics()
+	for _, nic := range nics {
+		if nic.Name == nicname {
+			return nic.Mac
+		}
+	}
+
+	return ""
+}
+
 // GetNicInfo get ip address,netmask and network by nic name
 func GetNicInfo(nicname string) (string, string, string, error) {
 	bash := Bash{

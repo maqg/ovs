@@ -7,20 +7,6 @@ import (
 	"octlink/ovs/utils/vyos"
 )
 
-const (
-	// SetSnatPath for Set SNAT
-	SetSnatPath = "/setsnat"
-
-	// RemoveSnatPath for remove snat path
-	RemoveSnatPath = "/removesnat"
-
-	// SyncSnatPath for sync snat
-	SyncSnatPath = "/syncsnat"
-)
-
-// SnatRuleNumber for max snat rule number
-var SnatRuleNumber = 9999
-
 // Snat for snat sturcture
 type Snat struct {
 	PrivateNicMac string `json:"privateNicMac"`
@@ -152,9 +138,27 @@ func GetAllSnats() []*Snat {
 
 	tree := vyos.NewParserFromShowConfiguration().Tree
 
-	if rs := tree.Getf("nat source rule"); rs != nil {
-		logger.Debugf("got nat rule of %s\n", rs.String())
+	sn := new(Snat)
+
+	if rs := tree.Getf("nat source rule %s", SnatRuleNumber); rs != nil {
+
+		outNic := rs.Get("outbound-interface").Value()
+		sn.PublicNicMac = utils.GetNicMacByName(outNic)
+
+		logger.Debugf("Got nat oubound-interface %s:%s\n", outNic, sn.PublicNicMac)
 	}
 
-	return make([]*Snat, 0)
+	if rs := tree.Getf("nat source rule %s source", SnatRuleNumber); rs != nil {
+		sn.PrivateNicIP = rs.Get("address").Value()
+		logger.Debugf("Got nat private nic ip %s\n", sn.PrivateNicIP)
+	}
+
+	if rs := tree.Getf("nat source rule %s translation", SnatRuleNumber); rs != nil {
+		sn.PublicIP = rs.Get("address").Value()
+		logger.Debugf("Got nat public nic ip %s\n", sn.PrivateNicIP)
+	}
+
+	return []*Snat{
+		sn,
+	}
 }
