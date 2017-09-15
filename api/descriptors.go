@@ -4,6 +4,7 @@ var apiDescriptors = []Module{
 	snatDescriptors,
 	configDescriptors,
 	nicDescriptors,
+	eipDescriptors,
 }
 
 func loadModules(module Module) {

@@ -13,22 +13,25 @@ func CreateEip(paras *Paras) *Response {
 		GuestIP:    paras.Get("guestIp"),
 	}
 	return &Response{
-		Data: eip,
+		Error: eip.CreateEip(),
 	}
 }
 
 // RemoveEip by API
 func RemoveEip(paras *Paras) *Response {
-	return &Response{}
+	eip := &plugins.EipInfo{
+		PrivateMac: paras.Get("privateMac"),
+		PublicMac:  paras.Get("publicMac"),
+		VipIP:      paras.Get("vip"),
+		GuestIP:    paras.Get("guestIp"),
+	}
+	return &Response{
+		Error: eip.RemoveEip(),
+	}
 }
 
 // RemoveEips by API
 func RemoveEips(paras *Paras) *Response {
-	return &Response{}
-}
-
-// SyncEip by API
-func SyncEip(paras *Paras) *Response {
 	return &Response{}
 }
 
@@ -39,7 +42,9 @@ func SyncEips(paras *Paras) *Response {
 
 // ShowEips by api
 func ShowEips(paras *Paras) *Response {
-	return &Response{}
+	return &Response{
+		Data: nil,
+	}
 }
 
 // ShowEip by api

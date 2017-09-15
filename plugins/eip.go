@@ -3,17 +3,17 @@ package plugins
 import (
 	"fmt"
 	"octlink/ovs/utils"
+	"octlink/ovs/utils/merrors"
 	"octlink/ovs/utils/vyos"
 	"strings"
 )
 
 // EipInfo base structure
 type EipInfo struct {
-	VipIP              string `json:"vipIp"`
-	PrivateMac         string `json:"privateMac"`
-	GuestIP            string `json:"guestIp"`
-	PublicMac          string `json:"publicMac"`
-	SnatInboundTraffic bool   `json:"snatInboundTraffic"`
+	VipIP      string `json:"vipIp"`
+	PrivateMac string `json:"privateMac"`
+	GuestIP    string `json:"guestIp"`
+	PublicMac  string `json:"publicMac"`
 }
 
 func makeEipDescription(info *EipInfo) string {
@@ -123,8 +123,8 @@ func deleteEip(tree *vyos.ConfigTree, eip *EipInfo) {
 }
 
 // CreateEip to remove eip
-func CreateEip() int {
-	eip := &EipInfo{}
+func (eip *EipInfo) CreateEip() int {
+
 	tree := vyos.NewParserFromShowConfiguration().Tree
 	setEip(tree, eip)
 	tree.Apply(false)
@@ -132,15 +132,34 @@ func CreateEip() int {
 	return 0
 }
 
-func removeEip() interface{} {
+// RemoveEips to remove eips from VR
+func RemoveEips(eips []*EipInfo) int {
+
 	tree := vyos.NewParserFromShowConfiguration().Tree
-	deleteEip(tree, &EipInfo{})
+
+	for _, eip := range eips {
+		deleteEip(tree, eip)
+	}
+
 	tree.Apply(false)
 
-	return nil
+	return merrors.ErrSuccess
 }
 
-func syncEips(eips []*EipInfo) int {
+// RemoveEip to remove eips from VR
+func (eip *EipInfo) RemoveEip() int {
+
+	tree := vyos.NewParserFromShowConfiguration().Tree
+
+	deleteEip(tree, eip)
+
+	tree.Apply(false)
+
+	return merrors.ErrSuccess
+}
+
+// SyncEips to sync all eips
+func SyncEips(eips []*EipInfo) int {
 
 	tree := vyos.NewParserFromShowConfiguration().Tree
 
