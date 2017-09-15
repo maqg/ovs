@@ -193,6 +193,10 @@ func GetAllSnats() []*Snat {
 		outNic := rule.Get("outbound-interface").Value()
 		sn.PublicNicMac = utils.GetNicMacByName(outNic)
 		logger.Debugf("Got nat oubound-interface %s:%s\n", outNic, sn.PublicNicMac)
+	} else {
+		return []*Snat{
+			sn,
+		}
 	}
 
 	if rs := rule.Getf("source address"); rs != nil {
@@ -206,21 +210,6 @@ func GetAllSnats() []*Snat {
 		sn.PublicIP = rs.Value()
 		logger.Debugf("Got nat public nic ip %s\n", sn.PrivateNicIP)
 	}
-
-	/*
-
-		if rs := tree.Getf("nat source rule %d source", SnatRuleNumber); rs != nil {
-			addr, netmask := utils.ParseCIDR(rs.Get("address").Value())
-			sn.PrivateNicIP = addr
-			sn.SnatNetmask = netmask
-			logger.Debugf("Got nat private nic ip %s/%s\n", sn.PrivateNicIP, sn.SnatNetmask)
-		}
-
-		if rs := tree.Getf("nat source rule %d translation", SnatRuleNumber); rs != nil {
-			sn.PublicIP = rs.Get("address").Value()
-			logger.Debugf("Got nat public nic ip %s\n", sn.PrivateNicIP)
-		}
-	*/
 
 	return []*Snat{
 		sn,
