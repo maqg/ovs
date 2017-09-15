@@ -1,5 +1,5 @@
 all::
-	go build -o ovs main.go
+	go  build -o ovs main.go
 
 clean::
 	rm -rf ovs
