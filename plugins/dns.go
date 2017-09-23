@@ -32,6 +32,34 @@ func (d *Dns) AddDns() int {
 	return 0
 }
 
+// GetAllDns by condition
+func GetAllDns() []*Dns {
+
+	tree := vyos.NewParserFromShowConfiguration().Tree
+
+	dns := new(Dns)
+
+	rule := tree.Getf("service dns forwarding")
+
+	logger.Debugf("rule: %s\n", rule)
+
+	return []*Dns{
+		dns,
+	}
+}
+
+// DeleteDns to delete dns
+func (d *Dns) DeleteDns() int {
+
+	tree := vyos.NewParserFromShowConfiguration().Tree
+
+	tree.Deletef("service dns forwarding name-server %s", d.DnsAddress)
+
+	tree.Apply(false)
+
+	return merrors.ErrSuccess
+}
+
 /*
 
 const (
