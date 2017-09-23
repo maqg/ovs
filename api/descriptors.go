@@ -1,6 +1,7 @@
 package api
 
 var apiDescriptors = []Module{
+	dnsDescriptors,
 	snatDescriptors,
 	configDescriptors,
 	nicDescriptors,

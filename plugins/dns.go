@@ -1,5 +1,37 @@
 package plugins
 
+import (
+	"octlink/ovs/utils"
+	"octlink/ovs/utils/merrors"
+	"octlink/ovs/utils/vyos"
+)
+
+// Dns for dns sturcture
+type Dns struct {
+	DnsAddress   string `json:"dnsAddress"`
+	PublicNicMac string `json:"publicNicMac"`
+}
+
+// AddDns to add dns
+func (d *Dns) AddDns() int {
+
+	tree := vyos.NewParserFromShowConfiguration().Tree
+
+	eth, err := utils.GetNicNameByMac(d.PublicNicMac)
+	if err != nil {
+		logger.Panicf("get nic name by mac %s error %s\n", d.PublicNicMac, err)
+		return merrors.ErrBadParas
+	}
+
+	tree.Setf("service dns forwarding listen-on %s", eth)
+
+	tree.Setf("service dns forwarding name-server %s", d.DnsAddress)
+
+	tree.Apply(false)
+
+	return 0
+}
+
 /*
 
 const (
