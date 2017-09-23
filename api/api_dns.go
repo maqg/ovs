@@ -15,14 +15,6 @@ func AddDns(paras *Paras) *Response {
 	}
 }
 
-// ShowAllDns for show all dns
-func ShowAllDns(paras *Paras) *Response {
-
-	return &Response{
-		Data: plugins.GetAllDns(),
-	}
-}
-
 // DeleteDns for delete dns
 func DeleteDns(paras *Paras) *Response {
 

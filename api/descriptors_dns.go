@@ -24,25 +24,6 @@ var dnsDescriptors = Module{
 			},
 		},
 
-		"APIShowAllDns": {
-			Name:    "查看所有DNS",
-			handler: ShowAllDns,
-			Paras: []ProtoPara{
-				{
-					Name:    "start",
-					Type:    ParamTypeInt,
-					Desc:    "开始位置",
-					Default: 0,
-				},
-				{
-					Name:    "limit",
-					Type:    "int",
-					Desc:    "获取条目",
-					Default: 15,
-				},
-			},
-		},
-
 		"APIRemoveDns": {
 			Name:    "删除DNS",
 			handler: DeleteDns,
