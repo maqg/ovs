@@ -26,3 +26,10 @@ func DeleteDns(paras *Paras) *Response {
 		Error: dns.DeleteDns(),
 	}
 }
+
+func ShowDns(paras *Paras) *Response {
+
+	return &Response{
+		Data: plugins.ShowDns(),
+	}
+}

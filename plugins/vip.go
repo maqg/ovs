@@ -1,5 +1,62 @@
 package plugins
 
+import (
+	"fmt"
+	"octlink/ovs/utils"
+	"octlink/ovs/utils/merrors"
+	"octlink/ovs/utils/vyos"
+)
+
+// Vip for vip sturcture
+type Vip struct {
+	Ip               string `json:"ip"`
+	Netmask          string `json:"netmask"`
+	OwnerEthernetMac string `json:"ownerEthernetMac"`
+}
+
+func (vip *Vip) AddVip() int {
+
+	tree := vyos.NewParserFromShowConfiguration().Tree
+
+	nicname, err := utils.GetNicNameByMac(vip.OwnerEthernetMac)
+	if err != nil {
+		logger.Errorf("get nic name of %s error\n", vip.OwnerEthernetMac)
+		return merrors.ErrBadParas
+	}
+
+	cidr := utils.NetmaskToCIDR(vip.Netmask)
+
+	addr := fmt.Sprintf("%v/%v", vip.Ip, cidr)
+	if n := tree.Getf("interfaces ethernet %s address %v", nicname, addr); n == nil {
+		tree.SetfWithoutCheckExisting("interfaces ethernet %s address %v", nicname, addr)
+	}
+
+	tree.Apply(false)
+
+	return 0
+}
+
+// DeleteVip to delete vip
+func (vip *Vip) DeleteVip() int {
+
+	tree := vyos.NewParserFromShowConfiguration().Tree
+
+	nicname, err := utils.GetNicNameByMac(vip.OwnerEthernetMac)
+	if err != nil {
+		logger.Errorf("get nic name of %s error\n", vip.OwnerEthernetMac)
+		return merrors.ErrBadParas
+	}
+
+	cidr := utils.NetmaskToCIDR(vip.Netmask)
+
+	addr := fmt.Sprintf("%v/%v", vip.Ip, cidr)
+	tree.Deletef("interfaces ethernet %s address %v", nicname, addr)
+
+	tree.Apply(false)
+
+	return 0
+}
+
 /*
 
 const (

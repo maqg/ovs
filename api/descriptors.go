@@ -5,6 +5,7 @@ var apiDescriptors = []Module{
 	snatDescriptors,
 	configDescriptors,
 	nicDescriptors,
+	vipDescriptors,
 	eipDescriptors,
 }
 

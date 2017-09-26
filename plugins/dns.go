@@ -44,6 +44,22 @@ func (d *Dns) DeleteDns() int {
 	return merrors.ErrSuccess
 }
 
+// ShowDns to show dns
+func ShowDns() []*Dns {
+	tree := vyos.NewParserFromShowConfiguration().Tree
+
+	dns := new(Dns)
+
+	rs := tree.Get("service dns forwarding name-server")
+	if rs != nil {
+		dns.DnsAddress = rs.Value()
+	}
+
+	return []*Dns{
+		dns,
+	}
+}
+
 /*
 
 const (

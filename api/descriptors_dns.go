@@ -36,5 +36,11 @@ var dnsDescriptors = Module{
 				},
 			},
 		},
+
+		"APIShowDns": {
+			Name:    "查看DNS",
+			handler: ShowDns,
+			Paras:   []ProtoPara{},
+		},
 	},
 }
