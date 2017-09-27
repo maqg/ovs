@@ -200,3 +200,49 @@ func SyncEips(eips []*EipInfo) int {
 
 	return 0
 }
+
+// GetAllEips by condition
+func GetAllEips() []*EipInfo {
+
+	var eips []*EipInfo
+
+	tree := vyos.NewParserFromShowConfiguration().Tree
+
+	if rs := tree.Get("nat destination rule"); rs != nil {
+		for _, r := range rs.Children() {
+			if d := r.Get("description"); d != nil && strings.HasPrefix(d.Value(), "EIP") {
+				eip := new(EipInfo)
+				eip.VipIP = r.Get("destination address").Value()
+				eip.GuestIP = r.Get("translation address").Value()
+
+				eips = append(eips, eip)
+			}
+		}
+	}
+
+	return eips
+}
+
+/*
+tree := vyos.NewParserFromShowConfiguration().Tree
+
+	sn := new(Snat)
+
+	rule := tree.Getf("nat source rule %d", SnatRuleNumber)
+	if rule != nil {
+		outNic := rule.Get("outbound-interface").Value()
+		sn.PublicNicMac = utils.GetNicMacByName(outNic)
+		logger.Debugf("Got nat oubound-interface %s:%s\n", outNic, sn.PublicNicMac)
+	} else {
+		return []*Snat{
+			sn,
+		}
+	}
+
+	if rs := rule.Getf("source address"); rs != nil {
+		addr, netmask := utils.ParseCIDR(rs.Value())
+		sn.PrivateNicIP = addr
+		sn.SnatNetmask = netmask
+		logger.Debugf("Got nat private nic ip %s/%s\n", sn.PrivateNicIP, sn.SnatNetmask)
+	}
+*/

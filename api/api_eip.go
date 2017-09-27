@@ -43,7 +43,7 @@ func SyncEips(paras *Paras) *Response {
 // ShowEips by api
 func ShowEips(paras *Paras) *Response {
 	return &Response{
-		Data: nil,
+		Data: plugins.GetAllEips(),
 	}
 }
 
