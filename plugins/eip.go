@@ -211,9 +211,20 @@ func GetAllEips() []*EipInfo {
 	if rs := tree.Get("nat destination rule"); rs != nil {
 		for _, r := range rs.Children() {
 			if d := r.Get("description"); d != nil && strings.HasPrefix(d.Value(), "EIP") {
+
 				eip := new(EipInfo)
+
 				eip.VipIP = r.Get("destination address").Value()
 				eip.GuestIP = r.Get("translation address").Value()
+
+				publicmac, err := utils.GetNicMacByIP(eip.VipIP)
+				if err == nil {
+					eip.PublicMac = publicmac
+				}
+				privatemac, err := utils.GetNicMacByIP(eip.GuestIP)
+				if err == nil {
+					eip.PrivateMac = privatemac
+				}
 
 				eips = append(eips, eip)
 			}
@@ -223,26 +234,14 @@ func GetAllEips() []*EipInfo {
 	return eips
 }
 
-/*
-tree := vyos.NewParserFromShowConfiguration().Tree
+// GetEip to get eip by privateMac
+func GetEip(privateMac string) (*EipInfo, int) {
 
-	sn := new(Snat)
-
-	rule := tree.Getf("nat source rule %d", SnatRuleNumber)
-	if rule != nil {
-		outNic := rule.Get("outbound-interface").Value()
-		sn.PublicNicMac = utils.GetNicMacByName(outNic)
-		logger.Debugf("Got nat oubound-interface %s:%s\n", outNic, sn.PublicNicMac)
-	} else {
-		return []*Snat{
-			sn,
+	eips := GetAllEips()
+	for _, eip := range eips {
+		if eip.PrivateMac == privateMac {
+			return eip, merrors.ErrSuccess
 		}
 	}
-
-	if rs := rule.Getf("source address"); rs != nil {
-		addr, netmask := utils.ParseCIDR(rs.Value())
-		sn.PrivateNicIP = addr
-		sn.SnatNetmask = netmask
-		logger.Debugf("Got nat private nic ip %s/%s\n", sn.PrivateNicIP, sn.SnatNetmask)
-	}
-*/
+	return nil, merrors.ErrSegmentNotExist
+}

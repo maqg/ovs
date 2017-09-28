@@ -156,6 +156,17 @@ func GetNicNameByIP(ip string) (string, error) {
 	return os[len(os)-1], nil
 }
 
+// GetNicMacByIP get nic mac by ip address
+func GetNicMacByIP(ip string) (string, error) {
+	nicname, err := GetNicNameByIP(ip)
+	if err != nil {
+		return "", err
+	}
+
+	mac := GetNicMacByName(nicname)
+	return mac, nil
+}
+
 // GetIPFromURL get ip address from url
 func GetIPFromURL(url string) (string, error) {
 	ip := strings.Split(strings.Split(url, "/")[2], ":")[0]

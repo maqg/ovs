@@ -1,7 +1,9 @@
 package api
 
 import (
+	"encoding/json"
 	"octlink/ovs/plugins"
+	"octlink/ovs/utils/merrors"
 )
 
 // CreateEip to add image by API
@@ -37,7 +39,27 @@ func RemoveEips(paras *Paras) *Response {
 
 // SyncEips by API
 func SyncEips(paras *Paras) *Response {
-	return &Response{}
+
+	eipsJSON := []byte(paras.Get("eips"))
+	var eips []plugins.EipInfo
+
+	err := json.Unmarshal(eipsJSON, &eips)
+	if err != nil {
+		return &Response{
+			Error: merrors.ErrBadParas,
+		}
+	}
+
+	eipsNew := make([]*plugins.EipInfo, len(eips))
+	for i := range eips {
+		eipsNew[i] = &eips[i]
+	}
+
+	logger.Debugf("eips paras:", eipsNew)
+
+	return &Response{
+		Error: plugins.SyncEips(eipsNew),
+	}
 }
 
 // ShowEips by api
@@ -49,5 +71,12 @@ func ShowEips(paras *Paras) *Response {
 
 // ShowEip by api
 func ShowEip(paras *Paras) *Response {
-	return &Response{}
+
+	eip, err := plugins.GetEip(paras.Get("privateMac"))
+
+	return &Response{
+		Data:  eip,
+		Error: err,
+	}
+
 }

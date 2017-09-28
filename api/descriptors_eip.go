@@ -10,6 +10,19 @@ var eipDescriptors = Module{
 			Paras:   []ProtoPara{},
 		},
 
+		"APIShowEip": {
+			Name:    "查看EIP配置",
+			handler: ShowEip,
+			Paras: []ProtoPara{
+				{
+					Name:    "privateMac",
+					Type:    ParamTypeString,
+					Desc:    "Mac Address of private nic",
+					Default: ParamNotNull,
+				},
+			},
+		},
+
 		"APIEipCreateEip": {
 			Name:    "建立EIP配置",
 			handler: CreateEip,
