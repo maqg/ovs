@@ -34,7 +34,25 @@ func RemoveEip(paras *Paras) *Response {
 
 // RemoveEips by API
 func RemoveEips(paras *Paras) *Response {
-	return &Response{}
+
+	eipsJSON := []byte(paras.Get("eips"))
+	var eips []plugins.EipInfo
+
+	err := json.Unmarshal(eipsJSON, &eips)
+	if err != nil {
+		return &Response{
+			Error: merrors.ErrBadParas,
+		}
+	}
+
+	eipsNew := make([]*plugins.EipInfo, len(eips))
+	for i := range eips {
+		eipsNew[i] = &eips[i]
+	}
+
+	return &Response{
+		Error: plugins.RemoveEips(eipsNew),
+	}
 }
 
 // SyncEips by API
@@ -54,8 +72,6 @@ func SyncEips(paras *Paras) *Response {
 	for i := range eips {
 		eipsNew[i] = &eips[i]
 	}
-
-	logger.Debugf("eips paras:", eipsNew)
 
 	return &Response{
 		Error: plugins.SyncEips(eipsNew),
