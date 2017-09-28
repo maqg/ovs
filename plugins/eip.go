@@ -214,16 +214,15 @@ func GetAllEips() []*EipInfo {
 
 				eip := new(EipInfo)
 
+				desclist := strings.Split(d.Value(), "-")
+				eip.PrivateMac = desclist[len(desclist)-1]
+
 				eip.VipIP = r.Get("destination address").Value()
 				eip.GuestIP = r.Get("translation address").Value()
 
 				publicmac, err := utils.GetNicMacByIP(eip.VipIP)
 				if err == nil {
 					eip.PublicMac = publicmac
-				}
-				privatemac, err := utils.GetNicMacByIP(eip.GuestIP)
-				if err == nil {
-					eip.PrivateMac = privatemac
 				}
 
 				eips = append(eips, eip)
