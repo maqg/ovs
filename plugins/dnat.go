@@ -1,5 +1,99 @@
 package plugins
 
+import (
+	"fmt"
+	"octlink/ovs/utils"
+	"octlink/ovs/utils/vyos"
+	"strings"
+)
+
+// Dnat for dnat sturcture
+type Dnat struct {
+	VipPortStart     int    `json:"vipPortStart"`
+	VipPortEnd       int    `json:"vipPortEnd"`
+	PrivatePortStart int    `json:"privatePortStart"`
+	PrivatePortEnd   int    `json:"privatePortEnd"`
+	ProtocolType     string `json:"protocolType"`
+	VipIp            string `json:"vipIp"`
+	PrivateIp        string `json:"privateIp"`
+	PrivateNicMac    string `json:"privateNicMac"`
+	AllowedCidr      string `json:"allowedCidr"`
+}
+
+func makeDnatDescription(dnat *Dnat) string {
+	return fmt.Sprintf("%v-%v-%v-%v-%v-%v-%v", dnat.VipIp, dnat.VipPortStart, dnat.VipPortEnd, dnat.PrivateNicMac, dnat.PrivatePortStart, dnat.PrivatePortEnd, dnat.ProtocolType)
+}
+
+func setDnat(tree *vyos.ConfigTree, dnat *Dnat) {
+
+	var sport string
+	if dnat.VipPortStart == dnat.VipPortEnd {
+		sport = fmt.Sprintf("%v", dnat.VipPortStart)
+	} else {
+		sport = fmt.Sprintf("%v-%v", dnat.VipPortStart, dnat.VipPortEnd)
+	}
+	var dport string
+	if dnat.PrivatePortStart == dnat.PrivatePortEnd {
+		dport = fmt.Sprintf("%v", dnat.PrivatePortStart)
+	} else {
+		dport = fmt.Sprintf("%v-%v", dnat.PrivatePortStart, dnat.PrivatePortEnd)
+	}
+
+	pubNicName, err := utils.GetNicNameByIP(dnat.VipIp)
+	utils.PanicOnError(err)
+
+	des := makeDnatDescription(dnat)
+	if r := tree.FindDnatRuleDescription(des); r == nil {
+		tree.SetDnat(
+			fmt.Sprintf("description %v", des),
+			fmt.Sprintf("destination address %v", dnat.VipIp),
+			fmt.Sprintf("destination port %v", sport),
+			fmt.Sprintf("inbound-interface any"),
+			fmt.Sprintf("protocol %v", strings.ToLower(dnat.ProtocolType)),
+			fmt.Sprintf("translation address %v", dnat.PrivateIp),
+			fmt.Sprintf("translation port %v", dport),
+		)
+	}
+
+	if fr := tree.FindFirewallRuleByDescription(pubNicName, "in", des); fr == nil {
+		if dnat.AllowedCidr != "" && dnat.AllowedCidr != "0.0.0.0/0" {
+			tree.SetFirewallOnInterface(pubNicName, "in",
+				"action reject",
+				fmt.Sprintf("source address !%v", dnat.AllowedCidr),
+				fmt.Sprintf("description %v", des),
+				// NOTE: the destination is private IP
+				// because the destination address is changed by the dnat rule
+				fmt.Sprintf("destination address %v", dnat.PrivateIp),
+				fmt.Sprintf("destination port %v", dport),
+				fmt.Sprintf("protocol %s", strings.ToLower(dnat.ProtocolType)),
+				"state new enable",
+			)
+		} else {
+			tree.SetFirewallOnInterface(pubNicName, "in",
+				"action accept",
+				fmt.Sprintf("description %v", des),
+				fmt.Sprintf("destination address %v", dnat.PrivateIp),
+				fmt.Sprintf("destination port %v", dport),
+				fmt.Sprintf("protocol %s", strings.ToLower(dnat.ProtocolType)),
+				"state new enable",
+			)
+		}
+	}
+
+	tree.AttachFirewallToInterface(pubNicName, "in")
+
+}
+
+// AddDnat for add dnat
+func (dnat *Dnat) AddDnat() int {
+
+	tree := vyos.NewParserFromShowConfiguration().Tree
+	setDnat(tree, dnat)
+	tree.Apply(false)
+
+	return 0
+}
+
 /*
 
 const (
