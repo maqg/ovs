@@ -144,11 +144,36 @@ func SyncDnats(dnats []*Dnat) int {
 // GetAllDnats get all dnats config
 func GetAllDnats() []*Dnat {
 
-	dnat := new(Dnat)
+	var dnats []*Dnat
+	tree := vyos.NewParserFromShowConfiguration().Tree
 
-	return []*Dnat{
-		dnat,
+	if rs := tree.Get("nat destination rule"); rs != nil {
+		for _, r := range rs.Children() {
+			if d := r.Get("description"); d != nil && (strings.HasSuffix(d.Value(), "TCP") || strings.HasSuffix(d.Value(), "UDP")) {
+
+				dnat := new(Dnat)
+
+				descList := strings.Split(d.Value(), "-")
+				if len(descList) != 7 {
+					continue
+				}
+
+				dnat.VipIp = descList[0]
+				dnat.VipPortStart = utils.StringToInt(descList[1])
+				dnat.VipPortEnd = utils.StringToInt(descList[2])
+				dnat.PrivateNicMac = descList[3]
+				dnat.PrivatePortStart = utils.StringToInt(descList[4])
+				dnat.PrivatePortEnd = utils.StringToInt(descList[5])
+				dnat.ProtocolType = descList[6]
+
+				dnat.PrivateIp = r.Get("translation address").Value()
+
+				dnats = append(dnats, dnat)
+			}
+		}
 	}
+
+	return dnats
 }
 
 // GetDnat to get dnat by privateMac
