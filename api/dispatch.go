@@ -61,7 +61,8 @@ func (p *Paras) GetBoolean(name string) bool {
 
 // GetInt paras from Paras structure
 func (p *Paras) GetInt(name string) int {
-	return utils.StringToInt(p.Get(name))
+	raw := p.InParas.Paras[name]
+	return utils.NumberToInt(raw)
 }
 
 // GetInt64 paras from Paras structure
