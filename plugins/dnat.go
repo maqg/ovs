@@ -3,6 +3,7 @@ package plugins
 import (
 	"fmt"
 	"octlink/ovs/utils"
+	"octlink/ovs/utils/merrors"
 	"octlink/ovs/utils/vyos"
 	"strings"
 )
@@ -92,6 +93,74 @@ func (dnat *Dnat) AddDnat() int {
 	tree.Apply(false)
 
 	return 0
+}
+
+func deleteDnat(tree *vyos.ConfigTree, dnat *Dnat) {
+
+	des := makeDnatDescription(dnat)
+	if r := tree.FindDnatRuleDescription(des); r != nil {
+		r.Delete()
+	}
+
+	pubNicName, err := utils.GetNicNameByIP(dnat.VipIp)
+	utils.PanicOnError(err)
+
+	if fr := tree.FindFirewallRuleByDescription(pubNicName, "in", des); fr != nil {
+		fr.Delete()
+	}
+}
+
+// RemoveDnat for remove dnat
+func (dnat *Dnat) RemoveDnat() int {
+
+	tree := vyos.NewParserFromShowConfiguration().Tree
+
+	deleteDnat(tree, dnat)
+	tree.Apply(false)
+
+	return 0
+}
+
+// RemoveDnats to remove eips from VR
+func RemoveDnats(dnats []*Dnat) int {
+
+	tree := vyos.NewParserFromShowConfiguration().Tree
+
+	for _, dnat := range dnats {
+		deleteDnat(tree, dnat)
+	}
+
+	tree.Apply(false)
+
+	return merrors.ErrSuccess
+}
+
+// SyncDnats to sync all eips
+func SyncDnats(dnats []*Dnat) int {
+
+	return 0
+}
+
+// GetAllDnats get all dnats config
+func GetAllDnats() []*Dnat {
+
+	dnat := new(Dnat)
+
+	return []*Dnat{
+		dnat,
+	}
+}
+
+// GetDnat to get dnat by privateMac
+func GetDnat(privateNicMac string) (*Dnat, int) {
+
+	dnats := GetAllDnats()
+	for _, dnat := range dnats {
+		if dnat.PrivateNicMac == privateNicMac {
+			return dnat, merrors.ErrSuccess
+		}
+	}
+	return nil, merrors.ErrSegmentNotExist
 }
 
 /*
