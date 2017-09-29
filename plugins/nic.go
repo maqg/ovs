@@ -16,6 +16,9 @@ const (
 
 	// VrSSHPort for ssh port default
 	VrSSHPort = 22
+
+	// VrServicePort for vr service use
+	VrServicePort = 3443
 )
 
 // IfInfo for Basic IfInfo Structure
@@ -68,6 +71,14 @@ func (nic *IfInfo) ConfigureNic() int {
 
 	tree.SetFirewallOnInterface(nicname, "local",
 		fmt.Sprintf("destination port %v", VrSSHPort),
+		fmt.Sprintf("destination address %v", nic.IP),
+		"protocol tcp",
+		"action accept",
+	)
+
+	// config nic for api test
+	tree.SetFirewallOnInterface(nicname, "local",
+		fmt.Sprintf("destination port %v", VrServicePort),
 		fmt.Sprintf("destination address %v", nic.IP),
 		"protocol tcp",
 		"action accept",
