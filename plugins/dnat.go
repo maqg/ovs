@@ -135,8 +135,39 @@ func RemoveDnats(dnats []*Dnat) int {
 	return merrors.ErrSuccess
 }
 
-// SyncDnats to sync all eips
+// SyncDnats to sync all dnats
 func SyncDnats(dnats []*Dnat) int {
+
+	tree := vyos.NewParserFromShowConfiguration().Tree
+
+	// delete all DNAT related rules
+	if rs := tree.Get("nat destination rule"); rs != nil {
+		for _, r := range rs.Children() {
+			if d := r.Get("description"); d != nil && (strings.HasSuffix(d.Value(), "TCP") || strings.HasSuffix(d.Value(), "UDP")) {
+				r.Delete()
+				logger.Debugf("Dnat related dnat rule has been deleted\n")
+			}
+		}
+	}
+
+	if rs := tree.Getf("firewall name"); rs != nil {
+		for _, r := range rs.Children() {
+			if rss := r.Get("rule"); rss != nil {
+				for _, rr := range rss.Children() {
+					if d := rr.Get("description"); d != nil && (strings.HasSuffix(d.Value(), "TCP") || strings.HasSuffix(d.Value(), "UDP")) {
+						rr.Delete()
+						logger.Debugf("Dnat related firewall rule has been deleted\n")
+					}
+				}
+			}
+		}
+	}
+
+	for _, dnat := range dnats {
+		setDnat(tree, dnat)
+	}
+
+	tree.Apply(false)
 
 	return 0
 }
