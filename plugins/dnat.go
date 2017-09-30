@@ -199,6 +199,17 @@ func GetAllDnats() []*Dnat {
 
 				dnat.PrivateIp = r.Get("translation address").Value()
 
+				pubNicName, err := utils.GetNicNameByIP(dnat.VipIp)
+				utils.PanicOnError(err)
+				if fr := tree.FindFirewallRuleByDescription(pubNicName, "in", d.Value()); fr != nil {
+					if a := fr.Get("action"); a != nil && a.Value() == "reject" {
+						if addr := fr.Get("source address"); addr != nil && strings.HasPrefix(addr.Value(), "!") {
+
+							dnat.AllowedCidr = strings.Trim(addr.Value(), "!")
+						}
+					}
+				}
+
 				dnats = append(dnats, dnat)
 			}
 		}
