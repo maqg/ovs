@@ -14,9 +14,10 @@ import (
 )
 
 const (
+	serviceport          = 3443
+	sshport              = 22
 	VIRTIO_PORT_PATH     = "/dev/virtio-ports/applianceVm.vport"
 	BOOTSTRAP_INFO_CACHE = "/home/vyos/rvm/bootstrap-info.json"
-	TMP_LOCATION_FOR_ESX = "/tmp/bootstrap-info.json"
 	// use this rule number to set a rule which confirm route entry work issue ZSTAC-6170
 	ROUTE_STATE_NEW_ENABLE_FIREWALL_RULE_NUMBER = 9999
 )
@@ -229,7 +230,6 @@ func configureVyos() {
 		utils.Assert(sshport != 0, "sshport not found in bootstrap info")
 	*/
 
-	sshport := 22
 	tree.Setf("service ssh port %v", int(sshport))
 	tree.Setf("service ssh listen-address %v", eth0.ip)
 
@@ -265,10 +265,17 @@ func configureVyos() {
 			"protocol icmp",
 		)
 
-		// only allow ssh traffic on eth0, disable on others
+		// only allow ssh traffic and service on eth0, disable on others
 		if nic.name == "eth0" {
 			tree.SetFirewallOnInterface(nic.name, "local",
 				fmt.Sprintf("destination port %v", int(sshport)),
+				fmt.Sprintf("destination address %v", nic.ip),
+				"protocol tcp",
+				"action accept",
+			)
+
+			tree.SetFirewallOnInterface(nic.name, "local",
+				fmt.Sprintf("destination port %v", int(serviceport)),
 				fmt.Sprintf("destination address %v", nic.ip),
 				"protocol tcp",
 				"action accept",
@@ -311,9 +318,9 @@ func configureVyos() {
 	}
 }
 
-func startZvr() {
+func startAgent() {
 	b := utils.Bash{
-		Command: "bash -x /etc/init.d/zstack-virtualrouteragent restart >> /tmp/agentRestart.log 2>&1",
+		Command: "bash -x /home/vyos/rvm/restart.sh >> /tmp/agentRestart.log 2>&1",
 	}
 	b.Run()
 	b.PanicIfError()
@@ -343,6 +350,7 @@ func main() {
 	parseKvmBootInfo()
 
 	configureVyos()
-	//	startZvr()
+
+	startAgent()
 	octlog.Debug("successfully configured the sysmtem and bootstrap the octopuslink virtual router agents")
 }
