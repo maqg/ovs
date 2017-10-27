@@ -23,7 +23,7 @@ var eipDescriptors = Module{
 			},
 		},
 
-		"APIEipCreateEip": {
+		"APICreateEip": {
 			Name:    "建立EIP配置",
 			handler: CreateEip,
 			Paras: []ProtoPara{
