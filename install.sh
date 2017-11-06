@@ -3,6 +3,12 @@
 HOME_DIR=/home/vyos/rvm
 VYATTA_BOOTFILE=/opt/vyatta/etc/config/scripts/vyatta-postconfig-bootup.script
 
+CUR_DIR=`pwd`
+if [ $CUR_DIR != $HOME_DIR ]; then
+	echo "This script should exec in the dir [$HOME_DIR]"
+	exit -1
+fi
+
 cat $VYATTA_BOOTFILE | grep ovsboot > /dev/null
 RET=$?
 if [ $RET = 0 ]; then
