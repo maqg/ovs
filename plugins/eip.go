@@ -10,7 +10,7 @@ import (
 
 // EipInfo base structure
 type EipInfo struct {
-	VipIP      string `json:"vipIp"`
+	VipIP      string `json:"vip"`
 	PrivateMac string `json:"privateMac"`
 	GuestIP    string `json:"guestIp"`
 	PublicMac  string `json:"publicMac"`
