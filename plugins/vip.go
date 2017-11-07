@@ -57,11 +57,30 @@ func (vip *Vip) DeleteVip() int {
 	return 0
 }
 
+// SyncVips to sync all vip
 func SyncVips(vips []*Vip) int {
 
+	tree := vyos.NewParserFromShowConfiguration().Tree
+
 	for _, vip := range vips {
-		
+
+		nicname, err := utils.GetNicNameByMac(vip.OwnerEthernetMac)
+		if err != nil {
+			logger.Errorf("get nic name of %s error\n", vip.OwnerEthernetMac)
+			return merrors.ErrBadParas
+		}
+
+		cidr := utils.NetmaskToCIDR(vip.Netmask)
+
+		addr := fmt.Sprintf("%v/%v", vip.Ip, cidr)
+		if n := tree.Getf("interfaces ethernet %s address %v", nicname, addr); n == nil {
+			tree.SetfWithoutCheckExisting("interfaces ethernet %s address %v", nicname, addr)
+		}
 	}
+
+	tree.Apply(false)
+
+	return 0
 }
 
 /*
