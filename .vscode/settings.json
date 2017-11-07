@@ -6,5 +6,8 @@
     "go.formatOnSave": true,
     "files.autoSaveDelay": 1000,
     "files.autoSave": "off",
-    "go.autocompleteUnimportedPackages": true
+    "go.autocompleteUnimportedPackages": true,
+    "gotoSymbolStack.currentStackPosition": 0,
+    "gotoSymbolStack.maxStackPosition": 0,
+    "gotoSymbolStack.filePositionInfo": []
 }

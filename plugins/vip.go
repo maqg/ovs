@@ -57,6 +57,13 @@ func (vip *Vip) DeleteVip() int {
 	return 0
 }
 
+func SyncVips(vips []*Vip) int {
+
+	for _, vip := range vips {
+		
+	}
+}
+
 /*
 
 const (

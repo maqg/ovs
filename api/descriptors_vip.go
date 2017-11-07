@@ -53,5 +53,18 @@ var vipDescriptors = Module{
 				},
 			},
 		},
+
+		"APISyncVips": {
+			Name:    "同步所有VIP",
+			handler: SyncVips,
+			Paras: []ProtoPara{
+				{
+					Name:    "vips",
+					Type:    ParamTypeString,
+					Desc:    "VIP Config in list []",
+					Default: ParamNotNull,
+				},
+			},
+		},
 	},
 }
