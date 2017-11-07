@@ -1,6 +1,10 @@
 package api
 
-import "octlink/ovs/plugins"
+import (
+	"encoding/json"
+	"octlink/ovs/plugins"
+	"octlink/ovs/utils/merrors"
+)
 
 // AddVip to add image by API
 func AddVip(paras *Paras) *Response {
